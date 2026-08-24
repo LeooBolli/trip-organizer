@@ -53,7 +53,14 @@
         <input type="checkbox" id="show-archived-toggle"> Mostra viaggi archiviati
       </label>
 
-      <div id="trips-list"></div>
+      <div id="trips-carousel-wrap" class="trips-carousel-wrap">
+        <div id="trips-list" class="trips-carousel"></div>
+        <div id="trips-carousel-nav" class="trips-carousel-nav">
+          <button type="button" id="trips-carousel-prev" class="carousel-arrow">←</button>
+          <div id="trips-carousel-dots" class="carousel-dots"></div>
+          <button type="button" id="trips-carousel-next" class="carousel-arrow">→</button>
+        </div>
+      </div>
 
       <div class="card">
         <h3>Nuovo viaggio</h3>
@@ -95,6 +102,7 @@
         <button class="tab-btn" data-tab="tab-itinerary">🗓️ Itinerario</button>
         <button class="tab-btn" data-tab="tab-packing">🧳 Valigia</button>
         <button class="tab-btn" data-tab="tab-jetlag">🌙 Jet Lag</button>
+        <button class="tab-btn" data-tab="tab-todo">✅ To Do</button>
         <button class="tab-btn" data-tab="tab-summary">📊 Riepilogo</button>
       </div>
 
@@ -105,7 +113,7 @@
         </div>
 
         <div class="card">
-          <h3>Aggiungi spesa</h3>
+          <h3 id="expense-form-title">Aggiungi spesa</h3>
           <form id="new-expense-form">
             <label>Descrizione</label>
             <input type="text" id="expense-description" placeholder="Es. Cena ristorante" required>
@@ -157,7 +165,8 @@
               <input type="number" id="expense-payer-share" min="0" max="100" value="50">
             </div>
 
-            <button type="submit">Aggiungi spesa</button>
+            <button type="submit" id="expense-form-submit">Aggiungi spesa</button>
+            <button type="button" id="expense-form-cancel" class="secondary-btn hidden">Annulla modifica</button>
           </form>
         </div>
 
@@ -177,6 +186,14 @@
               <option value="flight">✈️ Volo</option>
               <option value="hotel">🏨 Hotel</option>
               <option value="car">🚗 Auto a noleggio</option>
+              <option value="train">🚆 Treno</option>
+              <option value="bus">🚌 Bus/Pullman</option>
+              <option value="ferry">⛴️ Traghetto</option>
+              <option value="transfer">🚕 Transfer/Taxi</option>
+              <option value="excursion">🎫 Escursione</option>
+              <option value="restaurant">🍽️ Ristorante</option>
+              <option value="event">🎭 Evento/Spettacolo</option>
+              <option value="museum">🏛️ Museo/Attrazione</option>
               <option value="other">📌 Altro</option>
             </select>
 
@@ -332,6 +349,9 @@
         <div class="card" id="packing-add-card">
           <h3>Aggiungi oggetto</h3>
           <form id="new-packing-form">
+            <label>Dove va</label>
+            <select id="packing-organizer"></select>
+
             <label>Categoria</label>
             <select id="packing-category">
               <option value="abbigliamento">👕 Abbigliamento</option>
@@ -352,13 +372,14 @@
           </form>
         </div>
 
-        <div class="card">
-          <div class="card-header">
-            <h3 id="packing-list-title">La mia valigia</h3>
-            <span id="packing-progress" class="card-sub"></span>
-          </div>
-          <div id="packing-list"></div>
-          <button type="button" id="save-packing-template-btn" class="secondary-btn" style="width:100%;margin-top:14px;">💾 Salva questa valigia come modello</button>
+        <div id="packing-title-row" class="card-header" style="margin:4px 4px 12px;">
+          <h3 id="packing-list-title" style="font-size:1.05rem;">La mia valigia</h3>
+          <span id="packing-progress" class="card-sub"></span>
+        </div>
+        <div id="packing-organizers-container"></div>
+
+        <div class="card" id="packing-save-template-card">
+          <button type="button" id="save-packing-template-btn" class="secondary-btn" style="width:100%;">💾 Salva tutta la valigia come modello</button>
         </div>
       </div>
 
@@ -383,12 +404,37 @@
             <label>Data di partenza</label>
             <input type="date" id="jetlag-departure-date">
 
-            <label>Differenza di fuso orario con la destinazione</label>
-            <select id="jetlag-offset"></select>
+            <label>Parti da</label>
+            <select id="jetlag-origin"></select>
+
+            <label>Vai verso</label>
+            <select id="jetlag-destination"></select>
+
+            <label>A che ora vai a letto di solito</label>
+            <input type="time" id="jetlag-bedtime" value="23:00">
 
             <button type="submit">Genera piano</button>
           </form>
           <div id="jetlag-plan"></div>
+        </div>
+      </div>
+
+      <!-- TAB: TO DO -->
+      <div id="tab-todo" class="tab-panel hidden">
+        <div class="card">
+          <h3>Aggiungi promemoria</h3>
+          <form id="new-todo-form">
+            <input type="text" id="todo-title" placeholder="Es. Controllare il passaporto" required>
+            <button type="submit">Aggiungi</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>Da fare</h3>
+            <span id="todo-progress" class="card-sub"></span>
+          </div>
+          <div id="todo-list"></div>
         </div>
       </div>
 
@@ -441,6 +487,20 @@
   </main>
 </div>
 
+<!-- Anteprima documento (PDF/immagine) senza doverlo scaricare -->
+<div id="doc-preview-overlay" class="modal-overlay hidden">
+  <div class="modal-preview">
+    <div class="modal-preview-header">
+      <strong id="doc-preview-name"></strong>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <a id="doc-preview-open" href="#" target="_blank" rel="noopener noreferrer" class="icon-btn" title="Apri a schermo intero">⤢</a>
+        <button type="button" id="doc-preview-close" class="icon-btn" title="Chiudi">✕</button>
+      </div>
+    </div>
+    <div id="doc-preview-body" class="modal-preview-body"></div>
+  </div>
+</div>
+
 <!-- Librerie esterne (versioni fissate + integrità SRI) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3/dist/umd/supabase.js"
         integrity="sha384-qafw21c/iciq0VXsi9FzkfoQv5I/V0iqE4lSNcKXPnW9/UTJLnv5CcN4FHxVLnKg"
@@ -458,11 +518,13 @@
 <script src="js/theme.js"></script>
 <script src="js/trips.js"></script>
 <script src="js/auth.js"></script>
+<script src="js/customOptions.js"></script>
 <script src="js/expenses.js"></script>
 <script src="js/bookings.js"></script>
 <script src="js/itinerary.js"></script>
 <script src="js/packing.js"></script>
 <script src="js/jetlag.js"></script>
+<script src="js/todos.js"></script>
 <script src="js/export.js"></script>
 <script src="js/app.js"></script>
 
@@ -473,7 +535,7 @@
     for (const id of currencySelects) {
       const sel = document.getElementById(id);
       sel.innerHTML = window.APP_CONFIG.SUPPORTED_CURRENCIES
-        .map(c => `<option value="${c}">${c}</option>`).join("");
+        .map(c => `<option value="${c}">${c} - ${window.APP_CONFIG.CURRENCY_NAMES[c] || c}</option>`).join("");
     }
     document.getElementById("trip-currency").value = window.APP_CONFIG.DEFAULT_BASE_CURRENCY;
 

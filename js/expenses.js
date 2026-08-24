@@ -5,9 +5,11 @@ const Expenses = {
   trip: null,
   list: [],
   channel: null,
+  editingId: null,
 
   async openForTrip(trip) {
     this.trip = trip;
+    this.cancelEdit();
     document.getElementById("expense-currency").value = trip.base_currency;
     document.getElementById("expense-date").value = new Date().toISOString().slice(0, 10);
     this.toggleExchangeRateField();
@@ -22,9 +24,10 @@ const Expenses = {
   },
 
   init() {
-    document.getElementById("new-expense-form").addEventListener("submit", (e) => this.create(e));
+    document.getElementById("new-expense-form").addEventListener("submit", (e) => this.submit(e));
     document.getElementById("expense-currency").addEventListener("change", () => this.toggleExchangeRateField());
     document.getElementById("expense-split").addEventListener("change", () => this.toggleCustomSplit());
+    document.getElementById("expense-form-cancel").addEventListener("click", () => this.cancelEdit());
   },
 
   toggleExchangeRateField() {
@@ -48,7 +51,40 @@ const Expenses = {
     this.render();
   },
 
-  async create(e) {
+  startEdit(exp) {
+    this.editingId = exp.id;
+    document.getElementById("expense-description").value = exp.description;
+    document.getElementById("expense-category").value = exp.category;
+    document.getElementById("expense-amount").value = exp.amount;
+    document.getElementById("expense-currency").value = exp.currency;
+    document.getElementById("expense-rate").value = exp.exchange_rate;
+    document.getElementById("expense-date").value = exp.expense_date;
+    document.getElementById("expense-split").value = exp.payer_share_percent === 50 ? "equal" : "custom";
+    document.getElementById("expense-payer-share").value = exp.payer_share_percent;
+    this.toggleExchangeRateField();
+    this.toggleCustomSplit();
+
+    document.getElementById("expense-form-title").textContent = "Modifica spesa";
+    document.getElementById("expense-form-submit").textContent = "Salva modifiche";
+    document.getElementById("expense-form-cancel").classList.remove("hidden");
+    document.getElementById("expense-form-title").scrollIntoView({ behavior: "smooth", block: "start" });
+  },
+
+  cancelEdit() {
+    this.editingId = null;
+    document.getElementById("new-expense-form").reset();
+    document.getElementById("expense-form-title").textContent = "Aggiungi spesa";
+    document.getElementById("expense-form-submit").textContent = "Aggiungi spesa";
+    document.getElementById("expense-form-cancel").classList.add("hidden");
+    if (this.trip) {
+      document.getElementById("expense-currency").value = this.trip.base_currency;
+      document.getElementById("expense-date").value = new Date().toISOString().slice(0, 10);
+    }
+    this.toggleExchangeRateField();
+    this.toggleCustomSplit();
+  },
+
+  async submit(e) {
     e.preventDefault();
     const description = document.getElementById("expense-description").value.trim();
     const category = document.getElementById("expense-category").value;
@@ -65,25 +101,31 @@ const Expenses = {
 
     if (!description || !amount || amount <= 0) return;
 
-    const { error } = await supabaseClient.from("expenses").insert({
-      trip_id: this.trip.id,
-      description, category, amount, currency, exchange_rate,
-      payer_share_percent, expense_date,
-      paid_by: Auth.currentUser.id
-    });
+    if (this.editingId) {
+      const { error } = await supabaseClient.from("expenses").update({
+        description, category, amount, currency, exchange_rate, payer_share_percent, expense_date
+      }).eq("id", this.editingId);
+      if (error) { alert("Errore salvataggio modifiche: " + error.message); return; }
+    } else {
+      const { error } = await supabaseClient.from("expenses").insert({
+        trip_id: this.trip.id,
+        description, category, amount, currency, exchange_rate,
+        payer_share_percent, expense_date,
+        paid_by: Auth.currentUser.id
+      });
+      if (error) { alert("Errore salvataggio spesa: " + error.message); return; }
+    }
 
-    if (error) { alert("Errore salvataggio spesa: " + error.message); return; }
-    e.target.reset();
-    document.getElementById("expense-currency").value = this.trip.base_currency;
-    document.getElementById("expense-date").value = new Date().toISOString().slice(0, 10);
-    this.toggleExchangeRateField();
-    this.toggleCustomSplit();
+    this.cancelEdit();
+    await this.load();
   },
 
   async remove(id) {
     if (!confirm("Eliminare questa spesa?")) return;
+    this.list = this.list.filter(e => e.id !== id);
+    this.render();
     const { error } = await supabaseClient.from("expenses").delete().eq("id", id);
-    if (error) alert(error.message);
+    if (error) { alert(error.message); await this.load(); }
   },
 
   render() {
@@ -105,17 +147,20 @@ const Expenses = {
       const row = document.createElement("div");
       row.className = "expense-row";
       const baseAmount = exp.amount * exp.exchange_rate;
+      const categoryLabel = CATEGORY_LABELS[exp.category] || (window.CustomOptions && CustomOptions.getLabel("expense_category", exp.category)) || exp.category;
       row.innerHTML = `
         <div class="expense-main">
           <strong>${escapeHtml(exp.description)}</strong>
-          <small>${escapeHtml(CATEGORY_LABELS[exp.category] || exp.category)} · ${escapeHtml(formatDate(exp.expense_date))} · pagato da ${escapeHtml(Auth.otherUserLabel(exp.paid_by))}</small>
+          <small>${escapeHtml(categoryLabel)} · ${escapeHtml(formatDate(exp.expense_date))} · pagato da ${escapeHtml(Auth.otherUserLabel(exp.paid_by))}</small>
         </div>
         <div class="expense-amount">
           <strong>${escapeHtml(formatMoney(exp.amount, exp.currency))}</strong>
           ${exp.currency !== this.trip.base_currency ? `<small>≈ ${escapeHtml(formatMoney(baseAmount, this.trip.base_currency))}</small>` : ""}
         </div>
+        <button class="icon-btn edit-expense" title="Modifica">✏️</button>
         <button class="icon-btn delete-expense" title="Elimina">✕</button>
       `;
+      row.querySelector(".edit-expense").addEventListener("click", () => this.startEdit(exp));
       row.querySelector(".delete-expense").addEventListener("click", () => this.remove(exp.id));
       container.appendChild(row);
     }
@@ -143,9 +188,9 @@ const Expenses = {
     if (Math.abs(net) < 0.005) {
       el.innerHTML = `<span class="balance-neutral">Siete in pari! 🎉</span>`;
     } else if (net > 0) {
-      el.innerHTML = `Il/la tuo/a compagno/a ti deve <strong class="balance-positive">${escapeHtml(formatMoney(net, currency))}</strong>`;
+      el.innerHTML = `${escapeHtml(Auth.otherName())} ti deve <strong class="balance-positive">${escapeHtml(formatMoney(net, currency))}</strong>`;
     } else {
-      el.innerHTML = `Devi <strong class="balance-negative">${escapeHtml(formatMoney(-net, currency))}</strong> al/alla tuo/a compagno/a`;
+      el.innerHTML = `Devi <strong class="balance-negative">${escapeHtml(formatMoney(-net, currency))}</strong> a ${escapeHtml(Auth.otherName())}`;
     }
   },
 
@@ -161,10 +206,11 @@ const Expenses = {
 
     for (const [cat, total] of Object.entries(totals).sort((a, b) => b[1] - a[1])) {
       const pct = (total / grandTotal * 100).toFixed(0);
+      const label = CATEGORY_LABELS[cat] || (window.CustomOptions && CustomOptions.getLabel("expense_category", cat)) || cat;
       const row = document.createElement("div");
       row.className = "category-row";
       row.innerHTML = `
-        <span>${escapeHtml(CATEGORY_LABELS[cat] || cat)}</span>
+        <span>${escapeHtml(label)}</span>
         <div class="category-bar"><div class="category-bar-fill" style="width:${pct}%"></div></div>
         <span>${escapeHtml(formatMoney(total, this.trip.base_currency))}</span>
       `;

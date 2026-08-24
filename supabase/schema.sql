@@ -50,7 +50,7 @@ create table if not exists expenses (
 create table if not exists bookings (
   id uuid primary key default gen_random_uuid(),
   trip_id uuid not null references trips(id) on delete cascade,
-  type text not null check (type in ('flight','hotel','car','other')),
+  type text not null, -- valori suggeriti in app + tipi personalizzati liberi
   title text not null,
   provider text,
   start_datetime timestamptz,
@@ -91,8 +91,7 @@ create table if not exists itinerary_items (
   trip_id uuid not null references trips(id) on delete cascade,
   day date not null,
   position integer not null default 0,
-  type text not null default 'other'
-    check (type in ('attraction','transport','meal','accommodation','free_time','other')),
+  type text not null default 'other', -- valori suggeriti in app + tipi personalizzati liberi
   title text not null,
   start_datetime timestamptz,
   end_datetime timestamptz,
@@ -112,19 +111,38 @@ create table if not exists itinerary_items (
 );
 
 -- ------------------------------------------------------------
+-- PACKING ORGANIZERS (contenitori a scelta libera dentro la
+-- valigia di una persona, es. "Valigia", "Zaino", "Beauty case")
+-- ------------------------------------------------------------
+create table if not exists packing_organizers (
+  id uuid primary key default gen_random_uuid(),
+  trip_id uuid not null references trips(id) on delete cascade,
+  owner_id uuid not null references auth.users(id),
+  name text not null,
+  position integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+-- ------------------------------------------------------------
 -- PACKING ITEMS (valigia - una lista separata per persona,
--- distinta tramite owner_id)
+-- distinta tramite owner_id, raggruppata in organizer_id)
 -- ------------------------------------------------------------
 create table if not exists packing_items (
   id uuid primary key default gen_random_uuid(),
   trip_id uuid not null references trips(id) on delete cascade,
   owner_id uuid not null references auth.users(id),
+  organizer_id uuid references packing_organizers(id) on delete cascade,
   category text not null default 'altro',
   name text not null,
   quantity integer not null default 1,
   packed boolean not null default false,
   created_at timestamptz not null default now()
 );
+
+-- Se avete già eseguito questo schema in precedenza (packing_items
+-- esisteva prima degli organizer), eseguite anche questo per
+-- aggiungere la colonna senza perdere i dati:
+alter table packing_items add column if not exists organizer_id uuid references packing_organizers(id) on delete cascade;
 
 -- ------------------------------------------------------------
 -- PACKING TEMPLATES (modelli di valigia salvati dagli utenti,
@@ -136,6 +154,34 @@ create table if not exists packing_templates (
   owner_id uuid not null references auth.users(id),
   name text not null,
   items jsonb not null, -- [{ category, name, quantity }, ...]
+  created_at timestamptz not null default now()
+);
+
+-- ------------------------------------------------------------
+-- TODO (promemoria/checklist per singolo viaggio)
+-- ------------------------------------------------------------
+create table if not exists todos (
+  id uuid primary key default gen_random_uuid(),
+  trip_id uuid not null references trips(id) on delete cascade,
+  title text not null,
+  done boolean not null default false,
+  position integer not null default 0,
+  created_by uuid references auth.users(id),
+  created_at timestamptz not null default now()
+);
+
+-- ------------------------------------------------------------
+-- CUSTOM OPTIONS (voci aggiunte a mano dagli utenti nei vari menu
+-- a tendina dell'app - field_key identifica il menu, es.
+-- 'expense_category', 'booking_type', 'itinerary_type',
+-- 'packing_category')
+-- ------------------------------------------------------------
+create table if not exists custom_options (
+  id uuid primary key default gen_random_uuid(),
+  field_key text not null,
+  value text not null,
+  label text not null,
+  created_by uuid references auth.users(id),
   created_at timestamptz not null default now()
 );
 
@@ -168,6 +214,35 @@ create policy "authenticated full access packing_templates" on packing_templates
   for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 
 alter publication supabase_realtime add table packing_templates;
+
+-- ------------------------------------------------------------
+-- MIGRAZIONE 3: se avete già eseguito le Migrazioni 1 e 2 in
+-- passato, eseguite SOLO questo blocco per avere: organizer della
+-- valigia (Valigia/Zaino/ecc.), la sezione To Do, i menu a tendina
+-- con voci personalizzate, e prenotazioni/tappe con tipo libero
+-- (non più limitato a un elenco fisso):
+-- ------------------------------------------------------------
+alter table packing_items add column if not exists organizer_id uuid references packing_organizers(id) on delete cascade;
+
+alter table bookings drop constraint if exists bookings_type_check;
+alter table itinerary_items drop constraint if exists itinerary_items_type_check;
+
+alter table packing_organizers enable row level security;
+alter table todos enable row level security;
+alter table custom_options enable row level security;
+
+create policy "authenticated full access packing_organizers" on packing_organizers
+  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+
+create policy "authenticated full access todos" on todos
+  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+
+create policy "authenticated full access custom_options" on custom_options
+  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+
+alter publication supabase_realtime add table packing_organizers;
+alter publication supabase_realtime add table todos;
+alter publication supabase_realtime add table custom_options;
 
 -- ------------------------------------------------------------
 -- ROW LEVEL SECURITY

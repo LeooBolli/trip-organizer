@@ -6,7 +6,7 @@
 // ============================================================
 // Cambiare questo nome ad ogni modifica di app shell/stile: forza il
 // browser a scaricare i file nuovi invece di servire quelli in cache.
-const CACHE_NAME = "trip-organizer-v8";
+const CACHE_NAME = "trip-organizer-v9";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -15,12 +15,14 @@ const APP_SHELL = [
   "./js/supabaseClient.js",
   "./js/theme.js",
   "./js/auth.js",
+  "./js/customOptions.js",
   "./js/trips.js",
   "./js/expenses.js",
   "./js/bookings.js",
   "./js/itinerary.js",
   "./js/packing.js",
   "./js/jetlag.js",
+  "./js/todos.js",
   "./js/export.js",
   "./js/app.js",
   "./manifest.json"

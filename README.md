@@ -12,10 +12,10 @@ gestire: solo GitHub Pages (hosting statico) + Supabase (backend).
 2. Nel progetto, apri **SQL Editor** → **New query**, incolla il contenuto di
    [`supabase/schema.sql`](supabase/schema.sql) ed esegui (RUN).
    Questo crea le tabelle, le policy di sicurezza e il bucket di storage.
-   Se avevi già eseguito questo script in una versione precedente dell'app
-   (prima che esistessero Itinerario/Valigia), non rieseguirlo per intero:
-   nel file trovi un blocco marcato **"MIGRAZIONE"** subito dopo la creazione
-   delle tabelle `itinerary_items`/`packing_items` — esegui solo quello.
+   Se avevi già eseguito questo script in una versione precedente dell'app,
+   non rieseguirlo per intero: nel file trovi dei blocchi marcati
+   **"MIGRAZIONE 1/2/3"** — esegui solo quelli che ti mancano ancora (le
+   istruzioni dentro ogni blocco dicono quando serve).
 3. Vai su **Authentication → Providers** e assicurati che **Email** sia
    abilitato. In **Authentication → URL Configuration**, imposta l'URL
    dell'app (lo saprai dopo aver attivato GitHub Pages, es.
@@ -100,8 +100,10 @@ js/trips.js            gestione viaggi
 js/expenses.js         spese + calcolo saldo
 js/bookings.js         prenotazioni + documenti
 js/itinerary.js         itinerario giorno per giorno
-js/packing.js           valigia/checklist (lista separata per persona)
-js/jetlag.js            consigli e piano di adattamento jet lag
+js/packing.js           valigia/checklist a organizer (lista separata per persona)
+js/jetlag.js            consigli e piano di adattamento jet lag (fuso orario reale)
+js/todos.js             To Do per viaggio
+js/customOptions.js     voci personalizzate nei menu a tendina
 js/export.js           export Excel
 js/app.js              avvio app
 manifest.json / sw.js   PWA (icona home, offline app-shell)
@@ -135,21 +137,44 @@ spesa"), comparendo poi anche nel saldo e nell'export Excel.
 
 ## Valigia
 
-Tab "Valigia": checklist a categorie (abbigliamento, elettronica, documenti,
-igiene, salute...) con quantità e spunta. Ogni persona ha la propria lista
-(interruttore in alto per passare dalla propria a quella dell'altro/a, che
-resta visibile ma non modificabile). Le liste predefinite (Mare, Montagna/
-Neve, Città, Lavoro) aggiungono in un tocco una selezione di oggetti comuni,
-poi modificabile liberamente.
+Tab "Valigia": ogni persona crea liberamente i propri **organizer** (es.
+"Valigia", "Zaino", "Beauty case" — nome a scelta, quanti ne vuoi), ognuno
+con la propria checklist a categorie e progresso. Interruttore in alto per
+vedere anche la valigia dell'altra persona (in sola lettura). Le liste
+predefinite per destinazione (Sud-est asiatico, Sud America, Caraibi, Città
+europea, Montagna/Neve, Safari/Africa, Lavoro) aggiungono in un tocco una
+selezione di oggetti realistici nell'organizer scelto. Puoi anche salvare la
+tua valigia attuale come modello personalizzato riutilizzabile sui prossimi
+viaggi ("Salva tutta la valigia come modello").
 
 ## Jet lag
 
 Tab "Jet Lag": consigli generali (luce, pasti, idratazione, melatonina) e un
-piccolo calcolatore che, data la data di partenza e la differenza di fuso
-orario, genera un piano di adattamento (pre-shift del sonno nei giorni prima
-della partenza + giorni di recupero stimati a destinazione). Nessun dato
-viene salvato: è solo uno strumento calcolato al momento, diverso per volo
-verso est o verso ovest.
+calcolatore basato su **fuso orario reale** (scegli le città di partenza e
+destinazione da un elenco, o aggiungine una libera) — la differenza oraria
+tiene conto automaticamente dell'ora legale nella data del volo. Il piano
+generato dà orari specifici (non solo consigli generici): a che ora andare a
+letto nei giorni prima della partenza, e finestre precise di luce naturale
+da cercare/evitare nei giorni di recupero a destinazione.
+
+## To Do
+
+Tab "To Do": promemoria/checklist libera per singolo viaggio (es. "controllare
+il passaporto", "disdire il gatto sitter"), con spunta, modifica e
+eliminazione — indipendente da spese/prenotazioni/valigia.
+
+## Voci personalizzate nei menu
+
+Categoria spesa, tipo prenotazione, tipo tappa dell'itinerario e categoria
+valigia hanno tutti in fondo al menu a tendina una voce **"➕ Aggiungi
+nuovo..."**: permette di creare una voce libera, salvata e condivisa tra i
+due account, disponibile da quel momento in poi in tutta l'app.
+
+## Documenti prenotazioni
+
+I documenti allegati alle prenotazioni (PDF, foto) si aprono in un'anteprima
+dentro l'app con un tocco sul chip — non serve scaricarli per vederli. Dal
+visualizzatore c'è comunque un link per aprirli a schermo intero se preferisci.
 
 ## Possibili miglioramenti futuri
 

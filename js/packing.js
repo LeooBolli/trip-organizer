@@ -1,20 +1,25 @@
 // ============================================================
-// Valigia: checklist di cosa portare, una lista separata per
-// persona (owner_id), con liste predefinite per tipo di viaggio
-// e modelli personalizzati salvabili e riutilizzabili.
+// Valigia: organizer a scelta libera (Valigia, Zaino, Beauty
+// case...) per persona, ognuno con la propria checklist a
+// categorie, liste predefinite e modelli personalizzati salvabili.
 // ============================================================
 const Packing = {
   trip: null,
-  list: [],
+  list: [], // packing_items
+  organizers: [], // packing_organizers
   customTemplates: [],
   channel: null,
+  organizersChannel: null,
   templatesChannel: null,
   viewingOwner: "me", // "me" | "other"
+  migrationDone: false,
 
   async openForTrip(trip) {
     this.trip = trip;
     this.viewingOwner = "me";
+    this.migrationDone = false;
     document.querySelectorAll("#packing-owner-switch .segmented-btn").forEach(b => b.classList.toggle("active", b.dataset.owner === "me"));
+    document.getElementById("packing-other-label").textContent = Auth.otherName();
 
     if (this.channel) supabaseClient.removeChannel(this.channel);
     this.channel = supabaseClient
@@ -22,12 +27,31 @@ const Packing = {
       .on("postgres_changes", { event: "*", schema: "public", table: "packing_items", filter: `trip_id=eq.${trip.id}` }, () => this.load())
       .subscribe();
 
+    if (this.organizersChannel) supabaseClient.removeChannel(this.organizersChannel);
+    this.organizersChannel = supabaseClient
+      .channel("packing-organizers-" + trip.id)
+      .on("postgres_changes", { event: "*", schema: "public", table: "packing_organizers", filter: `trip_id=eq.${trip.id}` }, () => this.loadOrganizers())
+      .subscribe();
+
+    await this.loadOrganizers();
     await this.load();
   },
 
   init() {
     document.getElementById("new-packing-form").addEventListener("submit", (e) => this.create(e));
     document.getElementById("save-packing-template-btn").addEventListener("click", () => this.saveAsTemplate());
+
+    const orgSelect = document.getElementById("packing-organizer");
+    orgSelect.dataset.prevValue = "";
+    orgSelect.addEventListener("change", async () => {
+      if (orgSelect.value !== "__new_organizer__") { orgSelect.dataset.prevValue = orgSelect.value; return; }
+      const restore = orgSelect.dataset.prevValue;
+      const name = prompt("Nome del nuovo organizer (es. \"Valigia\", \"Zaino\", \"Beauty case\"):");
+      if (!name || !name.trim()) { orgSelect.value = restore; return; }
+      const newId = await this.createOrganizer(name.trim());
+      if (newId) { orgSelect.value = newId; orgSelect.dataset.prevValue = newId; }
+      else { orgSelect.value = restore; }
+    });
 
     document.querySelectorAll("#packing-owner-switch .segmented-btn").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -39,7 +63,7 @@ const Packing = {
     });
 
     document.querySelectorAll(".packing-template-btn").forEach(btn => {
-      btn.addEventListener("click", () => this.addTemplate(PACKING_TEMPLATES[btn.dataset.template]));
+      btn.addEventListener("click", () => this.addTemplate(PACKING_TEMPLATES[btn.dataset.template], btn.textContent.trim()));
     });
 
     this.templatesChannel = supabaseClient
@@ -47,6 +71,79 @@ const Packing = {
       .on("postgres_changes", { event: "*", schema: "public", table: "packing_templates" }, () => this.loadCustomTemplates())
       .subscribe();
     this.loadCustomTemplates();
+  },
+
+  async loadOrganizers() {
+    const { data, error } = await supabaseClient
+      .from("packing_organizers")
+      .select("*")
+      .eq("trip_id", this.trip.id)
+      .order("position", { ascending: true });
+    if (error) { console.error(error); return; }
+    this.organizers = data;
+
+    const me = Auth.currentUser.id;
+    if (!this.organizers.some(o => o.owner_id === me)) {
+      await this.createOrganizer("Valigia", false);
+      return; // createOrganizer ricarica organizers e chiama di nuovo render
+    }
+
+    this.populateOrganizerSelect();
+    this.render();
+  },
+
+  populateOrganizerSelect() {
+    const select = document.getElementById("packing-organizer");
+    const current = select.value;
+    select.innerHTML = "";
+    const me = Auth.currentUser.id;
+    for (const org of this.organizers.filter(o => o.owner_id === me)) {
+      const opt = document.createElement("option");
+      opt.value = org.id;
+      opt.textContent = org.name;
+      select.appendChild(opt);
+    }
+    const addOpt = document.createElement("option");
+    addOpt.value = "__new_organizer__";
+    addOpt.textContent = "➕ Nuovo organizer...";
+    select.appendChild(addOpt);
+
+    if ([...select.options].some(o => o.value === current)) select.value = current;
+    select.dataset.prevValue = select.value;
+  },
+
+  async createOrganizer(name, refresh = true) {
+    const me = Auth.currentUser.id;
+    const mine = this.organizers.filter(o => o.owner_id === me);
+    const position = mine.length > 0 ? Math.max(...mine.map(o => o.position)) + 1 : 0;
+
+    const { data, error } = await supabaseClient.from("packing_organizers").insert({
+      trip_id: this.trip.id, owner_id: me, name, position
+    }).select().single();
+    if (error) { alert("Errore creazione organizer: " + error.message); return null; }
+
+    if (refresh) await this.loadOrganizers();
+    return data.id;
+  },
+
+  async renameOrganizer(org) {
+    const name = prompt("Nuovo nome dell'organizer:", org.name);
+    if (!name || !name.trim()) return;
+    const { error } = await supabaseClient.from("packing_organizers").update({ name: name.trim() }).eq("id", org.id);
+    if (error) { alert(error.message); return; }
+    await this.loadOrganizers();
+  },
+
+  async removeOrganizer(org) {
+    const itemCount = this.list.filter(i => i.organizer_id === org.id).length;
+    const msg = itemCount > 0
+      ? `Eliminare "${org.name}" e i ${itemCount} oggetti al suo interno?`
+      : `Eliminare "${org.name}"?`;
+    if (!confirm(msg)) return;
+    const { error } = await supabaseClient.from("packing_organizers").delete().eq("id", org.id);
+    if (error) { alert(error.message); return; }
+    await this.loadOrganizers();
+    await this.load();
   },
 
   async load() {
@@ -58,7 +155,30 @@ const Packing = {
       .order("created_at", { ascending: true });
     if (error) { console.error(error); return; }
     this.list = data;
+    await this.migrateOrphanItems();
     this.render();
+  },
+
+  // Oggetti creati prima dell'introduzione degli organizer (organizer_id
+  // nullo): li assegna al primo organizer disponibile della persona.
+  async migrateOrphanItems() {
+    if (this.migrationDone) return;
+    const me = Auth.currentUser.id;
+    const orphans = this.list.filter(i => i.owner_id === me && !i.organizer_id);
+    if (orphans.length === 0) { this.migrationDone = true; return; }
+    const myOrganizer = this.organizers.find(o => o.owner_id === me);
+    if (!myOrganizer) return; // loadOrganizers ne creerà uno e richiamerà load()
+
+    this.migrationDone = true;
+    const ids = orphans.map(i => i.id);
+    const { error } = await supabaseClient.from("packing_items")
+      .update({ organizer_id: myOrganizer.id })
+      .in("id", ids);
+    if (!error) {
+      for (const item of this.list) {
+        if (ids.includes(item.id)) item.organizer_id = myOrganizer.id;
+      }
+    }
   },
 
   async loadCustomTemplates() {
@@ -73,24 +193,27 @@ const Packing = {
 
   async create(e) {
     e.preventDefault();
+    const organizer_id = document.getElementById("packing-organizer").value;
+    if (!organizer_id || organizer_id === "__new_organizer__") return;
     const category = document.getElementById("packing-category").value;
     const name = document.getElementById("packing-name").value.trim();
     const quantity = parseInt(document.getElementById("packing-quantity").value, 10) || 1;
     if (!name) return;
 
     const { error } = await supabaseClient.from("packing_items").insert({
-      trip_id: this.trip.id, owner_id: Auth.currentUser.id, category, name, quantity
+      trip_id: this.trip.id, owner_id: Auth.currentUser.id, organizer_id, category, name, quantity
     });
     if (error) { alert("Errore salvataggio oggetto: " + error.message); return; }
-    e.target.reset();
+    document.getElementById("packing-name").value = "";
     document.getElementById("packing-quantity").value = 1;
     await this.load();
   },
 
   async togglePacked(item) {
-    const { error } = await supabaseClient.from("packing_items").update({ packed: !item.packed }).eq("id", item.id);
-    if (error) { alert(error.message); return; }
-    await this.load();
+    item.packed = !item.packed;
+    this.render();
+    const { error } = await supabaseClient.from("packing_items").update({ packed: item.packed }).eq("id", item.id);
+    if (error) { alert(error.message); await this.load(); }
   },
 
   async editItem(item) {
@@ -108,15 +231,21 @@ const Packing = {
   },
 
   async remove(id) {
+    this.list = this.list.filter(i => i.id !== id);
+    this.render();
     const { error } = await supabaseClient.from("packing_items").delete().eq("id", id);
-    if (error) { alert(error.message); return; }
-    await this.load();
+    if (error) { alert(error.message); await this.load(); }
   },
 
-  async addTemplate(items) {
+  async addTemplate(items, templateLabel) {
     if (!items || items.length === 0) return;
+    let organizer_id = document.getElementById("packing-organizer").value;
+    if (!organizer_id || organizer_id === "__new_organizer__") {
+      organizer_id = await this.createOrganizer((templateLabel || "Valigia").replace(/^[^\w]+/, "").trim() || "Valigia");
+      if (!organizer_id) return;
+    }
     const rows = items.map(i => ({
-      trip_id: this.trip.id, owner_id: Auth.currentUser.id,
+      trip_id: this.trip.id, owner_id: Auth.currentUser.id, organizer_id,
       category: i.category, name: i.name, quantity: i.quantity
     }));
     const { error } = await supabaseClient.from("packing_items").insert(rows);
@@ -161,7 +290,7 @@ const Packing = {
         <button type="button" class="secondary-btn apply-template-btn">💾 ${escapeHtml(tpl.name)}</button>
         <button type="button" class="icon-btn delete-template-btn" title="Elimina modello">✕</button>
       `;
-      wrap.querySelector(".apply-template-btn").addEventListener("click", () => this.addTemplate(tpl.items));
+      wrap.querySelector(".apply-template-btn").addEventListener("click", () => this.addTemplate(tpl.items, tpl.name));
       wrap.querySelector(".delete-template-btn").addEventListener("click", () => this.removeTemplate(tpl.id));
       container.appendChild(wrap);
     }
@@ -170,58 +299,90 @@ const Packing = {
   render() {
     const isMe = this.viewingOwner === "me";
     document.getElementById("packing-add-card").classList.toggle("hidden", !isMe);
-    document.getElementById("packing-templates-card").classList.toggle("hidden", !isMe);
+    document.getElementById("packing-save-template-card").classList.toggle("hidden", !isMe);
 
     const me = Auth.currentUser.id;
-    const items = isMe
-      ? this.list.filter(i => i.owner_id === me)
-      : this.list.filter(i => i.owner_id !== me);
+    const ownerId = isMe ? me : (this.organizers.find(o => o.owner_id !== me)?.owner_id);
+    const myOrganizers = this.organizers.filter(o => o.owner_id === ownerId).sort((a, b) => a.position - b.position);
+    const myItems = ownerId ? this.list.filter(i => i.owner_id === ownerId) : [];
 
-    document.getElementById("packing-list-title").textContent = isMe ? "La mia valigia" : "Valigia del/la compagno/a";
+    document.getElementById("packing-list-title").textContent = isMe ? "La mia valigia" : `Valigia di ${Auth.otherName()}`;
+    const packedCount = myItems.filter(i => i.packed).length;
+    document.getElementById("packing-progress").textContent = myItems.length ? `${packedCount}/${myItems.length} pronti in totale` : "";
 
-    const packedCount = items.filter(i => i.packed).length;
-    document.getElementById("packing-progress").textContent = items.length ? `${packedCount}/${items.length} pronti` : "";
-
-    const container = document.getElementById("packing-list");
+    const container = document.getElementById("packing-organizers-container");
     container.innerHTML = "";
 
-    if (items.length === 0) {
-      container.innerHTML = `<p class="empty-state">${isMe ? "Nessun oggetto ancora. Aggiungine uno o usa una lista predefinita!" : "Nessun oggetto in questa valigia."}</p>`;
+    if (myOrganizers.length === 0) {
+      container.innerHTML = `<p class="empty-state">${isMe ? "Crea il tuo primo organizer (es. \"Valigia\") dal form qui sopra." : "Nessun organizer ancora."}</p>`;
       return;
     }
 
-    const byCategory = {};
-    for (const item of items) {
-      if (!byCategory[item.category]) byCategory[item.category] = [];
-      byCategory[item.category].push(item);
-    }
+    for (const org of myOrganizers) {
+      const orgItems = myItems.filter(i => i.organizer_id === org.id);
+      const orgPacked = orgItems.filter(i => i.packed).length;
 
-    for (const [category, catItems] of Object.entries(byCategory)) {
-      const catHeader = document.createElement("div");
-      catHeader.className = "packing-category-header";
-      catHeader.textContent = PACKING_CATEGORY_LABELS[category] || category;
-      container.appendChild(catHeader);
-
-      for (const item of catItems) {
-        const row = document.createElement("div");
-        row.className = "packing-row" + (item.packed ? " packing-row-packed" : "");
-        row.innerHTML = `
-          <label class="packing-check">
-            <input type="checkbox" ${item.packed ? "checked" : ""}>
-            <span>${escapeHtml(item.name)}${item.quantity > 1 ? ` <small>×${item.quantity}</small>` : ""}</span>
-          </label>
+      const card = document.createElement("div");
+      card.className = "card packing-organizer-card";
+      const header = document.createElement("div");
+      header.className = "card-header";
+      header.innerHTML = `
+        <h3>🧳 ${escapeHtml(org.name)}</h3>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="card-sub">${orgItems.length ? `${orgPacked}/${orgItems.length}` : ""}</span>
           ${isMe ? `
-            <button class="icon-btn edit-packing-item" title="Modifica">✏️</button>
-            <button class="icon-btn delete-packing-item" title="Elimina">✕</button>
+            <button type="button" class="icon-btn rename-organizer" title="Rinomina">✏️</button>
+            <button type="button" class="icon-btn delete-organizer" title="Elimina organizer">✕</button>
           ` : ""}
-        `;
-        row.querySelector("input").addEventListener("change", () => this.togglePacked(item));
-        const editBtn = row.querySelector(".edit-packing-item");
-        if (editBtn) editBtn.addEventListener("click", () => this.editItem(item));
-        const delBtn = row.querySelector(".delete-packing-item");
-        if (delBtn) delBtn.addEventListener("click", () => this.remove(item.id));
-        container.appendChild(row);
+        </div>
+      `;
+      if (isMe) {
+        header.querySelector(".rename-organizer").addEventListener("click", () => this.renameOrganizer(org));
+        header.querySelector(".delete-organizer").addEventListener("click", () => this.removeOrganizer(org));
       }
+      card.appendChild(header);
+
+      if (orgItems.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "empty-state";
+        empty.textContent = "Vuoto per ora.";
+        card.appendChild(empty);
+      } else {
+        const byCategory = {};
+        for (const item of orgItems) {
+          if (!byCategory[item.category]) byCategory[item.category] = [];
+          byCategory[item.category].push(item);
+        }
+        for (const [category, catItems] of Object.entries(byCategory)) {
+          const catHeader = document.createElement("div");
+          catHeader.className = "packing-category-header";
+          catHeader.textContent = PACKING_CATEGORY_LABELS[category] || (window.CustomOptions && CustomOptions.getLabel("packing_category", category)) || category;
+          card.appendChild(catHeader);
+
+          for (const item of catItems) {
+            const row = document.createElement("div");
+            row.className = "packing-row" + (item.packed ? " packing-row-packed" : "");
+            row.innerHTML = `
+              <label class="packing-check">
+                <input type="checkbox" ${item.packed ? "checked" : ""}>
+                <span>${escapeHtml(item.name)}${item.quantity > 1 ? ` <small>×${item.quantity}</small>` : ""}</span>
+              </label>
+              ${isMe ? `
+                <button class="icon-btn edit-packing-item" title="Modifica">✏️</button>
+                <button class="icon-btn delete-packing-item" title="Elimina">✕</button>
+              ` : ""}
+            `;
+            row.querySelector("input").addEventListener("change", () => this.togglePacked(item));
+            const editBtn = row.querySelector(".edit-packing-item");
+            if (editBtn) editBtn.addEventListener("click", () => this.editItem(item));
+            const delBtn = row.querySelector(".delete-packing-item");
+            if (delBtn) delBtn.addEventListener("click", () => this.remove(item.id));
+            card.appendChild(row);
+          }
+        }
+      }
+
+      container.appendChild(card);
     }
   }
 };

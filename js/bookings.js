@@ -1,6 +1,7 @@
 // ============================================================
-// Gestione prenotazioni (voli, hotel, auto) + documenti allegati
-// + ricerca luogo e mappa (OpenStreetMap / Leaflet, nessuna API key)
+// Gestione prenotazioni (voli, hotel, treni, escursioni,
+// ristoranti, eventi...) + documenti allegati ispezionabili
+// in-app + ricerca luogo e mappa (OpenStreetMap / Leaflet)
 // ============================================================
 const Bookings = {
   trip: null,
@@ -59,6 +60,11 @@ const Bookings = {
         this.renderSearchResults([]);
       }
     });
+
+    document.getElementById("doc-preview-close").addEventListener("click", () => this.closePreview());
+    document.getElementById("doc-preview-overlay").addEventListener("click", (e) => {
+      if (e.target.id === "doc-preview-overlay") this.closePreview();
+    });
   },
 
   // Ricerca luogo tramite Nominatim (OpenStreetMap), gratuito e senza API key.
@@ -114,6 +120,17 @@ const Bookings = {
     }
   },
 
+  async load() {
+    const { data, error } = await supabaseClient
+      .from("bookings")
+      .select("*, documents(*)")
+      .eq("trip_id", this.trip.id)
+      .order("start_datetime", { ascending: true, nullsFirst: false });
+    if (error) { console.error(error); return; }
+    this.list = data;
+    this.render();
+  },
+
   async create(e) {
     e.preventDefault();
     const type = document.getElementById("booking-type").value;
@@ -145,6 +162,7 @@ const Bookings = {
     e.target.reset();
     this.selectedLocation = null;
     document.getElementById("booking-location-preview").classList.add("hidden");
+    await this.load();
   },
 
   async uploadDocument(bookingId, file) {
@@ -158,20 +176,46 @@ const Bookings = {
       file_name: file.name,
       uploaded_by: Auth.currentUser.id
     });
-    if (error) alert(error.message);
-    this.load();
+    if (error) { alert(error.message); return; }
+    await this.load();
   },
 
-  async downloadDocument(path, fileName) {
-    const { data, error } = await supabaseClient.storage.from("trip-documents").createSignedUrl(path, 60);
+  async previewDocument(path, fileName) {
+    const { data, error } = await supabaseClient.storage.from("trip-documents").createSignedUrl(path, 300);
     if (error) { alert(error.message); return; }
-    window.open(data.signedUrl, "_blank");
+
+    const url = data.signedUrl;
+    const ext = (fileName.split(".").pop() || "").toLowerCase();
+    const isImage = ["png", "jpg", "jpeg", "gif", "webp", "heic", "heif"].includes(ext);
+
+    document.getElementById("doc-preview-name").textContent = fileName;
+    document.getElementById("doc-preview-open").href = url;
+    const body = document.getElementById("doc-preview-body");
+    body.innerHTML = isImage
+      ? `<img src="${url}" alt="${escapeHtml(fileName)}">`
+      : `<iframe src="${url}" title="${escapeHtml(fileName)}"></iframe>`;
+
+    document.getElementById("doc-preview-overlay").classList.remove("hidden");
+  },
+
+  closePreview() {
+    document.getElementById("doc-preview-overlay").classList.add("hidden");
+    document.getElementById("doc-preview-body").innerHTML = "";
+  },
+
+  async removeDocument(docId) {
+    if (!confirm("Eliminare questo documento?")) return;
+    const { error } = await supabaseClient.from("documents").delete().eq("id", docId);
+    if (error) { alert(error.message); return; }
+    await this.load();
   },
 
   async removeBooking(id) {
     if (!confirm("Eliminare questa prenotazione e i documenti allegati?")) return;
+    this.list = this.list.filter(b => b.id !== id);
+    this.render();
     const { error } = await supabaseClient.from("bookings").delete().eq("id", id);
-    if (error) alert(error.message);
+    if (error) { alert(error.message); await this.load(); }
   },
 
   render() {
@@ -191,14 +235,17 @@ const Bookings = {
     for (const b of this.list) {
       const card = document.createElement("div");
       card.className = "booking-card";
-      const icon = BOOKING_ICONS[b.type] || "📄";
+      const icon = BOOKING_ICONS[b.type] || (window.CustomOptions && CustomOptions.getLabel("booking_type", b.type)?.split(" ")[0]) || "📄";
       const dateRange = [b.start_datetime, b.end_datetime]
         .filter(Boolean)
         .map(d => new Date(d).toLocaleString("it-IT", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }))
         .join(" → ");
 
       const docsHtml = (b.documents || []).map(doc => `
-        <button class="doc-chip" data-path="${escapeHtml(doc.file_path)}" data-name="${escapeHtml(doc.file_name)}">📎 ${escapeHtml(doc.file_name)}</button>
+        <span class="doc-chip-wrap">
+          <button class="doc-chip preview-doc" data-path="${escapeHtml(doc.file_path)}" data-name="${escapeHtml(doc.file_name)}">📎 ${escapeHtml(doc.file_name)}</button>
+          <button class="icon-btn delete-doc" data-doc-id="${doc.id}" title="Elimina documento">✕</button>
+        </span>
       `).join("");
 
       const hasLocation = b.latitude != null && b.longitude != null;
@@ -225,8 +272,11 @@ const Bookings = {
       `;
 
       card.querySelector(".delete-booking").addEventListener("click", () => this.removeBooking(b.id));
-      card.querySelectorAll(".doc-chip").forEach(chip => {
-        chip.addEventListener("click", () => this.downloadDocument(chip.dataset.path, chip.dataset.name));
+      card.querySelectorAll(".preview-doc").forEach(chip => {
+        chip.addEventListener("click", () => this.previewDocument(chip.dataset.path, chip.dataset.name));
+      });
+      card.querySelectorAll(".delete-doc").forEach(btn => {
+        btn.addEventListener("click", () => this.removeDocument(btn.dataset.docId));
       });
 
       container.appendChild(card);
@@ -251,4 +301,7 @@ const Bookings = {
   }
 };
 
-const BOOKING_ICONS = { flight: "✈️", hotel: "🏨", car: "🚗", other: "📌" };
+const BOOKING_ICONS = {
+  flight: "✈️", hotel: "🏨", car: "🚗", train: "🚆", bus: "🚌", ferry: "⛴️",
+  transfer: "🚕", excursion: "🎫", restaurant: "🍽️", event: "🎭", museum: "🏛️", other: "📌"
+};

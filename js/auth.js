@@ -59,8 +59,24 @@ const Auth = {
     }
   },
 
+  // Nome reale della persona proprietaria di userId (funziona per te
+  // e per l'altra persona, senza mai usare "tuo/a compagno/a")
   otherUserLabel(userId) {
     if (!this.currentUser) return "";
-    return userId === this.currentUser.id ? "Tu" : "Il/la tuo/a compagno/a";
+    if (userId === this.currentUser.id) return this.myName();
+    return this.otherName();
+  },
+
+  myName() {
+    if (!this.currentUser) return "Tu";
+    return window.APP_CONFIG.USER_NAMES[this.currentUser.email] || this.currentUser.email;
+  },
+
+  otherName() {
+    if (!this.currentUser) return "";
+    const otherEmail = window.APP_CONFIG.ALLOWED_EMAILS.find(
+      e => e.toLowerCase() !== this.currentUser.email.toLowerCase()
+    );
+    return (otherEmail && window.APP_CONFIG.USER_NAMES[otherEmail]) || "l'altra persona";
   }
 };

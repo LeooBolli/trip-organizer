@@ -14,6 +14,8 @@ const Trips = {
     document.getElementById("edit-trip-form").addEventListener("submit", (e) => this.saveEdit(e));
     document.getElementById("show-archived-toggle").addEventListener("change", () => this.render());
     document.getElementById("trip-emoji-edit").addEventListener("click", () => this.editEmoji());
+    document.getElementById("trips-carousel-prev").addEventListener("click", () => this.scrollCarouselBy(-1));
+    document.getElementById("trips-carousel-next").addEventListener("click", () => this.scrollCarouselBy(1));
 
     supabaseClient
       .channel("trips-changes")
@@ -44,28 +46,76 @@ const Trips = {
   render() {
     const showArchived = document.getElementById("show-archived-toggle").checked;
     const container = document.getElementById("trips-list");
+    const nav = document.getElementById("trips-carousel-nav");
+    const dotsWrap = document.getElementById("trips-carousel-dots");
     container.innerHTML = "";
+    dotsWrap.innerHTML = "";
 
     const filtered = this.list.filter(t => showArchived ? t.archived : !t.archived);
 
     if (filtered.length === 0) {
       container.innerHTML = `<p class="empty-state">${showArchived ? "Nessun viaggio archiviato." : "Nessun viaggio ancora. Creane uno qui sotto!"}</p>`;
+      nav.classList.add("hidden");
       return;
     }
 
-    for (const trip of filtered) {
+    nav.classList.toggle("hidden", filtered.length < 2);
+
+    const gradients = TRIP_CARD_GRADIENTS;
+    filtered.forEach((trip, idx) => {
       const card = document.createElement("button");
-      card.className = "trip-card";
+      card.className = "trip-hero-card";
+      card.style.background = gradients[idx % gradients.length];
       card.innerHTML = `
-        <span class="trip-emoji">${escapeHtml(trip.emoji || "🧳")}</span>
-        <span class="trip-info">
+        <span class="trip-hero-emoji-bg">${escapeHtml(trip.emoji || "🧳")}</span>
+        <span class="trip-hero-emoji">${escapeHtml(trip.emoji || "🧳")}</span>
+        <span class="trip-hero-info">
           <strong>${escapeHtml(trip.name)}</strong>
-          <small>${escapeHtml(trip.destination || "")} ${trip.start_date ? "· " + escapeHtml(formatDate(trip.start_date)) : ""}</small>
+          <span>${escapeHtml(trip.destination || "")}</span>
+          ${trip.start_date ? `<small>${escapeHtml(formatDate(trip.start_date))}${trip.end_date ? " – " + escapeHtml(formatDate(trip.end_date)) : ""}</small>` : ""}
         </span>
       `;
       card.addEventListener("click", () => this.open(trip));
       container.appendChild(card);
-    }
+
+      const dot = document.createElement("span");
+      dot.className = "carousel-dot" + (idx === 0 ? " active" : "");
+      dot.addEventListener("click", () => this.scrollCarouselTo(idx));
+      dotsWrap.appendChild(dot);
+    });
+
+    let scrollTimer = null;
+    container.onscroll = () => {
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => this.updateActiveDot(), 100);
+    };
+  },
+
+  scrollCarouselBy(direction) {
+    const container = document.getElementById("trips-list");
+    const dots = document.querySelectorAll("#trips-carousel-dots .carousel-dot");
+    const activeIdx = [...dots].findIndex(d => d.classList.contains("active"));
+    const nextIdx = Math.max(0, Math.min(container.children.length - 1, (activeIdx === -1 ? 0 : activeIdx) + direction));
+    this.scrollCarouselTo(nextIdx);
+  },
+
+  scrollCarouselTo(idx) {
+    const container = document.getElementById("trips-list");
+    const card = container.children[idx];
+    if (card) card.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  },
+
+  updateActiveDot() {
+    const container = document.getElementById("trips-list");
+    const dots = document.querySelectorAll("#trips-carousel-dots .carousel-dot");
+    if (dots.length === 0) return;
+    const containerCenter = container.scrollLeft + container.clientWidth / 2;
+    let closestIdx = 0, closestDist = Infinity;
+    [...container.children].forEach((card, idx) => {
+      const dist = Math.abs((card.offsetLeft + card.offsetWidth / 2) - containerCenter);
+      if (dist < closestDist) { closestDist = dist; closestIdx = idx; }
+    });
+    dots.forEach((d, i) => d.classList.toggle("active", i === closestIdx));
   },
 
   async create(e) {
@@ -107,6 +157,7 @@ const Trips = {
     await Itinerary.openForTrip(trip);
     await Packing.openForTrip(trip);
     Jetlag.openForTrip(trip);
+    await Todos.openForTrip(trip);
   },
 
   showList() {
@@ -199,3 +250,12 @@ function formatMoney(amount, currency) {
     return `${(amount ?? 0).toFixed(2)} ${code}`;
   }
 }
+
+// Gradienti alternati per le card viaggio nel carosello, stessa palette
+// navy/arancio dell'app
+const TRIP_CARD_GRADIENTS = [
+  "linear-gradient(135deg, #16283A 0%, #1F3245 100%)",
+  "linear-gradient(135deg, #D97324 0%, #EE8F45 100%)",
+  "linear-gradient(135deg, #10233F 0%, #2C4A6E 100%)",
+  "linear-gradient(135deg, #7A3B1E 0%, #B85412 100%)"
+];

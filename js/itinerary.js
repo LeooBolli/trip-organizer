@@ -174,9 +174,10 @@ const Itinerary = {
 
   async remove(id) {
     if (!confirm("Eliminare questa tappa?")) return;
+    this.list = this.list.filter(i => i.id !== id);
+    this.render();
     const { error } = await supabaseClient.from("itinerary_items").delete().eq("id", id);
-    if (error) { alert(error.message); return; }
-    await this.load();
+    if (error) { alert(error.message); await this.load(); }
   },
 
   async move(item, direction) {
@@ -268,7 +269,8 @@ const Itinerary = {
   renderItem(item, isFirst, isLast) {
     const el = document.createElement("div");
     el.className = "itinerary-item";
-    const icon = ITINERARY_TYPE_ICONS[item.type] || "📌";
+    const customLabel = window.CustomOptions && CustomOptions.getLabel("itinerary_type", item.type);
+    const icon = ITINERARY_TYPE_ICONS[item.type] || (customLabel ? customLabel.split(" ")[0] : "📌");
     const timeRange = [item.start_datetime, item.end_datetime]
       .filter(Boolean)
       .map(d => new Date(d).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }))

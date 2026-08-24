@@ -21,5 +21,17 @@ window.APP_CONFIG = {
   },
 
   DEFAULT_BASE_CURRENCY: "EUR",
-  SUPPORTED_CURRENCIES: ["EUR", "USD", "GBP", "CHF", "JPY", "COP", "XCG", "TRY"]
+  SUPPORTED_CURRENCIES: ["EUR", "USD", "GBP", "CHF", "JPY", "COP", "XCG", "TRY"],
+
+  // Nome esteso mostrato accanto al codice nei menu valuta (es. "EUR - Euro")
+  CURRENCY_NAMES: {
+    EUR: "Euro",
+    USD: "Dollaro USA",
+    GBP: "Sterlina britannica",
+    CHF: "Franco svizzero",
+    JPY: "Yen giapponese",
+    COP: "Peso colombiano",
+    XCG: "Caribbean guilder",
+    TRY: "Lira turca"
+  }
 };
