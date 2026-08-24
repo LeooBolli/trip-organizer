@@ -127,9 +127,22 @@ create table if not exists packing_items (
 );
 
 -- ------------------------------------------------------------
--- MIGRAZIONE: se avete già eseguito questo schema in precedenza
--- (prima che esistessero Itinerario/Valigia), eseguite solo questo
--- blocco per abilitare le due tabelle nuove senza toccare il resto:
+-- PACKING TEMPLATES (modelli di valigia salvati dagli utenti,
+-- riutilizzabili su qualsiasi viaggio futuro - non legati a un
+-- trip_id specifico)
+-- ------------------------------------------------------------
+create table if not exists packing_templates (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references auth.users(id),
+  name text not null,
+  items jsonb not null, -- [{ category, name, quantity }, ...]
+  created_at timestamptz not null default now()
+);
+
+-- ------------------------------------------------------------
+-- MIGRAZIONE 1: se avete già eseguito questo schema in precedenza
+-- (prima che esistessero Itinerario/Valigia), e NON avete ancora
+-- eseguito la Migrazione 1 in passato, eseguite questo blocco:
 -- ------------------------------------------------------------
 alter table itinerary_items enable row level security;
 alter table packing_items enable row level security;
@@ -142,6 +155,19 @@ create policy "authenticated full access packing_items" on packing_items
 
 alter publication supabase_realtime add table itinerary_items;
 alter publication supabase_realtime add table packing_items;
+
+-- ------------------------------------------------------------
+-- MIGRAZIONE 2: se avete già eseguito la Migrazione 1 qui sopra in
+-- passato (quindi itinerary_items/packing_items esistono già) e vi
+-- serve solo aggiungere i Modelli di valigia salvati, eseguite SOLO
+-- questo blocco (la Migrazione 1 andrebbe in errore se rieseguita):
+-- ------------------------------------------------------------
+alter table packing_templates enable row level security;
+
+create policy "authenticated full access packing_templates" on packing_templates
+  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+
+alter publication supabase_realtime add table packing_templates;
 
 -- ------------------------------------------------------------
 -- ROW LEVEL SECURITY

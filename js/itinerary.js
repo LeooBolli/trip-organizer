@@ -169,12 +169,14 @@ const Itinerary = {
     this.toggleExchangeRateField();
     this.selectedLocation = null;
     document.getElementById("itinerary-location-preview").classList.add("hidden");
+    await this.load();
   },
 
   async remove(id) {
     if (!confirm("Eliminare questa tappa?")) return;
     const { error } = await supabaseClient.from("itinerary_items").delete().eq("id", id);
-    if (error) alert(error.message);
+    if (error) { alert(error.message); return; }
+    await this.load();
   },
 
   async move(item, direction) {
@@ -188,6 +190,7 @@ const Itinerary = {
       supabaseClient.from("itinerary_items").update({ position: other.position }).eq("id", item.id),
       supabaseClient.from("itinerary_items").update({ position: item.position }).eq("id", other.id)
     ]);
+    await this.load();
   },
 
   async addAsExpense(item) {
@@ -210,7 +213,9 @@ const Itinerary = {
       .from("itinerary_items")
       .update({ expense_id: expense.id })
       .eq("id", item.id);
-    if (updateError) alert(updateError.message);
+    if (updateError) { alert(updateError.message); return; }
+    await this.load();
+    await Expenses.load();
   },
 
   render() {

@@ -601,6 +601,24 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
 .settings-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 .settings-actions .secondary-btn { width: auto; padding: 8px 14px; font-size: 0.82rem; }
 
+.custom-template-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--accent-light);
+  border-radius: var(--radius-md);
+  padding: 2px;
+}
+.custom-template-chip .secondary-btn {
+  border: none;
+  background: none;
+  color: var(--accent-dark);
+  padding: 6px 6px 6px 10px;
+}
+.custom-template-chip .secondary-btn:hover { background: none; }
+.custom-template-chip .icon-btn { padding: 6px 10px 6px 4px; color: var(--accent-dark); opacity: 0.7; }
+.custom-template-chip .icon-btn:hover { opacity: 1; background: none; }
+
 /* --- Segmented control (switch valigia mia/compagno) --- */
 .segmented {
   display: flex;

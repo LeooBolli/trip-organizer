@@ -11,6 +11,7 @@ const Trips = {
     document.getElementById("back-to-trips").addEventListener("click", () => this.showList());
     document.getElementById("archive-trip-btn").addEventListener("click", () => this.toggleArchive());
     document.getElementById("delete-trip-btn").addEventListener("click", () => this.remove());
+    document.getElementById("edit-trip-form").addEventListener("submit", (e) => this.saveEdit(e));
     document.getElementById("show-archived-toggle").addEventListener("change", () => this.render());
     document.getElementById("trip-emoji-edit").addEventListener("click", () => this.editEmoji());
 
@@ -95,6 +96,12 @@ const Trips = {
     document.getElementById("trip-emoji-edit").textContent = trip.emoji || "🧳";
     document.getElementById("trip-detail-title").textContent = trip.name;
     document.getElementById("archive-trip-btn").textContent = trip.archived ? "Riattiva viaggio" : "Archivia viaggio";
+
+    document.getElementById("edit-trip-name").value = trip.name || "";
+    document.getElementById("edit-trip-destination").value = trip.destination || "";
+    document.getElementById("edit-trip-start").value = trip.start_date || "";
+    document.getElementById("edit-trip-end").value = trip.end_date || "";
+    document.getElementById("edit-trip-currency").value = trip.base_currency;
     await Expenses.openForTrip(trip);
     await Bookings.openForTrip(trip);
     await Itinerary.openForTrip(trip);
@@ -113,6 +120,32 @@ const Trips = {
     const { error } = await supabaseClient.from("trips").update({ archived: !trip.archived }).eq("id", trip.id);
     if (error) { alert(error.message); return; }
     this.showList();
+  },
+
+  async saveEdit(e) {
+    e.preventDefault();
+    const trip = this.activeTrip;
+    if (!trip) return;
+
+    const name = document.getElementById("edit-trip-name").value.trim();
+    if (!name) return;
+    const destination = document.getElementById("edit-trip-destination").value.trim();
+    const start_date = document.getElementById("edit-trip-start").value || null;
+    const end_date = document.getElementById("edit-trip-end").value || null;
+    const base_currency = document.getElementById("edit-trip-currency").value;
+
+    const { error } = await supabaseClient.from("trips")
+      .update({ name, destination, start_date, end_date, base_currency })
+      .eq("id", trip.id);
+    if (error) { alert("Errore salvataggio modifiche: " + error.message); return; }
+
+    trip.name = name;
+    trip.destination = destination;
+    trip.start_date = start_date;
+    trip.end_date = end_date;
+    trip.base_currency = base_currency;
+    document.getElementById("trip-detail-title").textContent = name;
+    await this.load();
   },
 
   async remove() {

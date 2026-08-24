@@ -326,6 +326,7 @@
             <button type="button" class="secondary-btn packing-template-btn" data-template="safari_africa">🦁 Safari/Africa</button>
             <button type="button" class="secondary-btn packing-template-btn" data-template="lavoro">💼 Lavoro</button>
           </div>
+          <div class="settings-actions" id="packing-custom-templates"></div>
         </div>
 
         <div class="card" id="packing-add-card">
@@ -357,6 +358,7 @@
             <span id="packing-progress" class="card-sub"></span>
           </div>
           <div id="packing-list"></div>
+          <button type="button" id="save-packing-template-btn" class="secondary-btn" style="width:100%;margin-top:14px;">💾 Salva questa valigia come modello</button>
         </div>
       </div>
 
@@ -392,6 +394,28 @@
 
       <!-- TAB: SUMMARY -->
       <div id="tab-summary" class="tab-panel hidden">
+        <div class="card">
+          <h3>Modifica viaggio</h3>
+          <form id="edit-trip-form">
+            <label>Nome viaggio</label>
+            <input type="text" id="edit-trip-name" required>
+
+            <label>Destinazione</label>
+            <input type="text" id="edit-trip-destination">
+
+            <label>Data inizio</label>
+            <input type="date" id="edit-trip-start">
+
+            <label>Data fine</label>
+            <input type="date" id="edit-trip-end">
+
+            <label>Valuta base</label>
+            <select id="edit-trip-currency"></select>
+
+            <button type="submit">Salva modifiche</button>
+          </form>
+        </div>
+
         <div class="card">
           <h3>Spese per categoria</h3>
           <div id="category-breakdown"></div>
@@ -445,7 +469,7 @@
 <script>
   // Popola i select delle valute e gestisce le tab
   document.addEventListener("DOMContentLoaded", () => {
-    const currencySelects = ["trip-currency", "expense-currency", "itinerary-currency"];
+    const currencySelects = ["trip-currency", "expense-currency", "itinerary-currency", "edit-trip-currency"];
     for (const id of currencySelects) {
       const sel = document.getElementById(id);
       sel.innerHTML = window.APP_CONFIG.SUPPORTED_CURRENCIES

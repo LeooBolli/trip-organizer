@@ -1,11 +1,14 @@
 // ============================================================
 // Valigia: checklist di cosa portare, una lista separata per
-// persona (owner_id), con liste predefinite per tipo di viaggio.
+// persona (owner_id), con liste predefinite per tipo di viaggio
+// e modelli personalizzati salvabili e riutilizzabili.
 // ============================================================
 const Packing = {
   trip: null,
   list: [],
+  customTemplates: [],
   channel: null,
+  templatesChannel: null,
   viewingOwner: "me", // "me" | "other"
 
   async openForTrip(trip) {
@@ -24,6 +27,7 @@ const Packing = {
 
   init() {
     document.getElementById("new-packing-form").addEventListener("submit", (e) => this.create(e));
+    document.getElementById("save-packing-template-btn").addEventListener("click", () => this.saveAsTemplate());
 
     document.querySelectorAll("#packing-owner-switch .segmented-btn").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -35,8 +39,14 @@ const Packing = {
     });
 
     document.querySelectorAll(".packing-template-btn").forEach(btn => {
-      btn.addEventListener("click", () => this.addTemplate(btn.dataset.template));
+      btn.addEventListener("click", () => this.addTemplate(PACKING_TEMPLATES[btn.dataset.template]));
     });
+
+    this.templatesChannel = supabaseClient
+      .channel("packing-templates")
+      .on("postgres_changes", { event: "*", schema: "public", table: "packing_templates" }, () => this.loadCustomTemplates())
+      .subscribe();
+    this.loadCustomTemplates();
   },
 
   async load() {
@@ -49,6 +59,16 @@ const Packing = {
     if (error) { console.error(error); return; }
     this.list = data;
     this.render();
+  },
+
+  async loadCustomTemplates() {
+    const { data, error } = await supabaseClient
+      .from("packing_templates")
+      .select("*")
+      .order("created_at", { ascending: true });
+    if (error) { console.error(error); return; }
+    this.customTemplates = data;
+    this.renderCustomTemplates();
   },
 
   async create(e) {
@@ -64,27 +84,87 @@ const Packing = {
     if (error) { alert("Errore salvataggio oggetto: " + error.message); return; }
     e.target.reset();
     document.getElementById("packing-quantity").value = 1;
+    await this.load();
   },
 
   async togglePacked(item) {
     const { error } = await supabaseClient.from("packing_items").update({ packed: !item.packed }).eq("id", item.id);
-    if (error) alert(error.message);
+    if (error) { alert(error.message); return; }
+    await this.load();
+  },
+
+  async editItem(item) {
+    const newName = prompt("Nome oggetto:", item.name);
+    if (newName === null) return;
+    const name = newName.trim();
+    if (!name) return;
+    const newQuantityStr = prompt("Quantità:", item.quantity);
+    if (newQuantityStr === null) return;
+    const quantity = parseInt(newQuantityStr, 10) || 1;
+
+    const { error } = await supabaseClient.from("packing_items").update({ name, quantity }).eq("id", item.id);
+    if (error) { alert(error.message); return; }
+    await this.load();
   },
 
   async remove(id) {
     const { error } = await supabaseClient.from("packing_items").delete().eq("id", id);
-    if (error) alert(error.message);
+    if (error) { alert(error.message); return; }
+    await this.load();
   },
 
-  async addTemplate(key) {
-    const items = PACKING_TEMPLATES[key];
-    if (!items) return;
+  async addTemplate(items) {
+    if (!items || items.length === 0) return;
     const rows = items.map(i => ({
       trip_id: this.trip.id, owner_id: Auth.currentUser.id,
       category: i.category, name: i.name, quantity: i.quantity
     }));
     const { error } = await supabaseClient.from("packing_items").insert(rows);
-    if (error) alert(error.message);
+    if (error) { alert(error.message); return; }
+    await this.load();
+  },
+
+  async saveAsTemplate() {
+    const me = Auth.currentUser.id;
+    const myItems = this.list.filter(i => i.owner_id === me);
+    if (myItems.length === 0) {
+      alert("La tua valigia per questo viaggio è vuota: aggiungi degli oggetti prima di salvarla come modello.");
+      return;
+    }
+    const name = prompt("Nome del modello (es. \"Weekend corto\", \"Trekking\"):");
+    if (!name || !name.trim()) return;
+
+    const items = myItems.map(i => ({ category: i.category, name: i.name, quantity: i.quantity }));
+    const { error } = await supabaseClient.from("packing_templates").insert({
+      owner_id: me, name: name.trim(), items
+    });
+    if (error) { alert("Errore salvataggio modello: " + error.message); return; }
+    await this.loadCustomTemplates();
+  },
+
+  async removeTemplate(id) {
+    if (!confirm("Eliminare questo modello salvato?")) return;
+    const { error } = await supabaseClient.from("packing_templates").delete().eq("id", id);
+    if (error) { alert(error.message); return; }
+    await this.loadCustomTemplates();
+  },
+
+  renderCustomTemplates() {
+    const container = document.getElementById("packing-custom-templates");
+    container.innerHTML = "";
+    if (this.customTemplates.length === 0) return;
+
+    for (const tpl of this.customTemplates) {
+      const wrap = document.createElement("span");
+      wrap.className = "custom-template-chip";
+      wrap.innerHTML = `
+        <button type="button" class="secondary-btn apply-template-btn">💾 ${escapeHtml(tpl.name)}</button>
+        <button type="button" class="icon-btn delete-template-btn" title="Elimina modello">✕</button>
+      `;
+      wrap.querySelector(".apply-template-btn").addEventListener("click", () => this.addTemplate(tpl.items));
+      wrap.querySelector(".delete-template-btn").addEventListener("click", () => this.removeTemplate(tpl.id));
+      container.appendChild(wrap);
+    }
   },
 
   render() {
@@ -130,9 +210,14 @@ const Packing = {
             <input type="checkbox" ${item.packed ? "checked" : ""}>
             <span>${escapeHtml(item.name)}${item.quantity > 1 ? ` <small>×${item.quantity}</small>` : ""}</span>
           </label>
-          ${isMe ? `<button class="icon-btn delete-packing-item" title="Elimina">✕</button>` : ""}
+          ${isMe ? `
+            <button class="icon-btn edit-packing-item" title="Modifica">✏️</button>
+            <button class="icon-btn delete-packing-item" title="Elimina">✕</button>
+          ` : ""}
         `;
         row.querySelector("input").addEventListener("change", () => this.togglePacked(item));
+        const editBtn = row.querySelector(".edit-packing-item");
+        if (editBtn) editBtn.addEventListener("click", () => this.editItem(item));
         const delBtn = row.querySelector(".delete-packing-item");
         if (delBtn) delBtn.addEventListener("click", () => this.remove(item.id));
         container.appendChild(row);
