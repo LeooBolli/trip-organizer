@@ -5,12 +5,18 @@
 // ============================================================
 const Auth = {
   currentUser: null,
+  EMAIL_STORAGE_KEY: "trip-organizer-last-email",
 
   init(onReady) {
     const form = document.getElementById("login-form");
+    const emailInput = document.getElementById("login-email");
+
+    const savedEmail = localStorage.getItem(this.EMAIL_STORAGE_KEY);
+    if (savedEmail) emailInput.value = savedEmail;
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const email = document.getElementById("login-email").value.trim().toLowerCase();
+      const email = emailInput.value.trim().toLowerCase();
       const password = document.getElementById("login-password").value;
       const statusEl = document.getElementById("login-status");
 
@@ -22,6 +28,7 @@ const Auth = {
       statusEl.textContent = "Accesso in corso...";
       const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
+      if (!error) localStorage.setItem(this.EMAIL_STORAGE_KEY, email);
       statusEl.textContent = error ? "Email o password non corrette." : "";
     });
 

@@ -266,6 +266,37 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
 .trip-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .trip-info small { color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+.trip-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.trip-detail-header h2 { margin: 0; }
+#trip-emoji-edit {
+  position: relative;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+#trip-emoji-edit:active { transform: scale(0.92); }
+#trip-emoji-edit::after {
+  content: "✏️";
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  font-size: 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .empty-state {
   color: var(--text-soft);
   text-align: center;

@@ -21,5 +21,5 @@ window.APP_CONFIG = {
   },
 
   DEFAULT_BASE_CURRENCY: "EUR",
-  SUPPORTED_CURRENCIES: ["EUR", "USD", "GBP", "CHF", "JPY"]
+  SUPPORTED_CURRENCIES: ["EUR", "USD", "GBP", "CHF", "JPY", "COP", "XCG", "TRY"]
 };

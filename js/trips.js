@@ -4,12 +4,14 @@
 const Trips = {
   list: [],
   activeTrip: null,
+  autoOpenAttempted: false,
 
   async init() {
     document.getElementById("new-trip-form").addEventListener("submit", (e) => this.create(e));
     document.getElementById("back-to-trips").addEventListener("click", () => this.showList());
     document.getElementById("archive-trip-btn").addEventListener("click", () => this.toggleArchive());
     document.getElementById("show-archived-toggle").addEventListener("change", () => this.render());
+    document.getElementById("trip-emoji-edit").addEventListener("click", () => this.editEmoji());
 
     supabaseClient
       .channel("trips-changes")
@@ -24,6 +26,17 @@ const Trips = {
     if (error) { console.error(error); return; }
     this.list = data;
     this.render();
+
+    if (!this.autoOpenAttempted) {
+      this.autoOpenAttempted = true;
+      if (!this.activeTrip) {
+        const active = this.list.filter(t => !t.archived);
+        if (active.length > 0) {
+          const latest = active.reduce((a, b) => new Date(a.created_at) > new Date(b.created_at) ? a : b);
+          this.open(latest);
+        }
+      }
+    }
   },
 
   render() {
@@ -78,7 +91,8 @@ const Trips = {
     this.activeTrip = trip;
     document.getElementById("view-trips").classList.add("hidden");
     document.getElementById("view-trip-detail").classList.remove("hidden");
-    document.getElementById("trip-detail-title").textContent = `${trip.emoji} ${trip.name}`;
+    document.getElementById("trip-emoji-edit").textContent = trip.emoji || "🧳";
+    document.getElementById("trip-detail-title").textContent = trip.name;
     document.getElementById("archive-trip-btn").textContent = trip.archived ? "Riattiva viaggio" : "Archivia viaggio";
     await Expenses.openForTrip(trip);
     await Bookings.openForTrip(trip);
@@ -98,6 +112,20 @@ const Trips = {
     const { error } = await supabaseClient.from("trips").update({ archived: !trip.archived }).eq("id", trip.id);
     if (error) { alert(error.message); return; }
     this.showList();
+  },
+
+  async editEmoji() {
+    const trip = this.activeTrip;
+    if (!trip) return;
+    const input = prompt("Nuova icona per il viaggio (incolla un'emoji):", trip.emoji || "🧳");
+    if (input === null) return;
+    const emoji = input.trim() || "🧳";
+
+    trip.emoji = emoji;
+    document.getElementById("trip-emoji-edit").textContent = emoji;
+
+    const { error } = await supabaseClient.from("trips").update({ emoji }).eq("id", trip.id);
+    if (error) alert(error.message);
   }
 };
 
@@ -113,5 +141,12 @@ function formatDate(dateStr) {
 }
 
 function formatMoney(amount, currency) {
-  return new Intl.NumberFormat("it-IT", { style: "currency", currency: currency || "EUR" }).format(amount);
+  const code = currency || "EUR";
+  try {
+    return new Intl.NumberFormat("it-IT", { style: "currency", currency: code }).format(amount);
+  } catch (err) {
+    // Codici valuta molto recenti (es. XCG, introdotto nel 2025) potrebbero
+    // non essere ancora riconosciuti su dispositivi con iOS/Safari datati.
+    return `${(amount ?? 0).toFixed(2)} ${code}`;
+  }
 }
