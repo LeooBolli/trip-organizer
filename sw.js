@@ -3,7 +3,9 @@
 // e resilienza a connessioni instabili. Le chiamate a Supabase
 // (dati, auth, storage) NON vengono mai messe in cache.
 // ============================================================
-const CACHE_NAME = "trip-organizer-v1";
+// Cambiare questo nome ad ogni modifica di app shell/stile: forza il
+// browser a scaricare i file nuovi invece di servire quelli in cache.
+const CACHE_NAME = "trip-organizer-v2";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -15,6 +17,9 @@ const APP_SHELL = [
   "./js/trips.js",
   "./js/expenses.js",
   "./js/bookings.js",
+  "./js/itinerary.js",
+  "./js/packing.js",
+  "./js/jetlag.js",
   "./js/export.js",
   "./js/app.js",
   "./manifest.json"
