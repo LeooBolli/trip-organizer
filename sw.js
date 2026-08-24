@@ -5,7 +5,7 @@
 // ============================================================
 // Cambiare questo nome ad ogni modifica di app shell/stile: forza il
 // browser a scaricare i file nuovi invece di servire quelli in cache.
-const CACHE_NAME = "trip-organizer-v3";
+const CACHE_NAME = "trip-organizer-v4";
 const APP_SHELL = [
   "./",
   "./index.html",
