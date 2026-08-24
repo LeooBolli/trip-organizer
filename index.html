@@ -4,12 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Trip Organizer</title>
-<meta name="theme-color" content="#2f6fed">
+<meta name="theme-color" content="#EE8F45">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Trip Organizer">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700&display=swap">
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H"
@@ -97,7 +100,7 @@
 
       <!-- TAB: EXPENSES -->
       <div id="tab-expenses" class="tab-panel">
-        <div class="card">
+        <div class="card balance-card">
           <div id="balance-summary"></div>
         </div>
 
@@ -315,9 +318,12 @@
           <h3>Liste predefinite</h3>
           <p class="card-text">Aggiungi in un tocco una selezione di oggetti già pronta alla tua valigia.</p>
           <div class="settings-actions">
-            <button type="button" class="secondary-btn packing-template-btn" data-template="mare">🏖️ Mare</button>
-            <button type="button" class="secondary-btn packing-template-btn" data-template="montagna">🏔️ Montagna/Neve</button>
-            <button type="button" class="secondary-btn packing-template-btn" data-template="citta">🏙️ Città</button>
+            <button type="button" class="secondary-btn packing-template-btn" data-template="sud_est_asiatico">🛕 Sud-est asiatico</button>
+            <button type="button" class="secondary-btn packing-template-btn" data-template="sud_america">🏔️ Sud America</button>
+            <button type="button" class="secondary-btn packing-template-btn" data-template="caraibi">🏖️ Caraibi</button>
+            <button type="button" class="secondary-btn packing-template-btn" data-template="citta_europea">🏙️ Città europea</button>
+            <button type="button" class="secondary-btn packing-template-btn" data-template="montagna_neve">⛷️ Montagna/Neve</button>
+            <button type="button" class="secondary-btn packing-template-btn" data-template="safari_africa">🦁 Safari/Africa</button>
             <button type="button" class="secondary-btn packing-template-btn" data-template="lavoro">💼 Lavoro</button>
           </div>
         </div>

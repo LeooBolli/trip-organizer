@@ -1,11 +1,12 @@
 // ============================================================
-// Service worker minimale: cache dell'app shell per apertura rapida
-// e resilienza a connessioni instabili. Le chiamate a Supabase
-// (dati, auth, storage) NON vengono mai messe in cache.
+// Service worker: rete prima di tutto (contenuti sempre aggiornati
+// quando c'è connessione), cache solo come riserva se sei offline.
+// Le chiamate a Supabase (dati, auth, storage) NON vengono mai
+// toccate/messe in cache.
 // ============================================================
 // Cambiare questo nome ad ogni modifica di app shell/stile: forza il
 // browser a scaricare i file nuovi invece di servire quelli in cache.
-const CACHE_NAME = "trip-organizer-v5";
+const CACHE_NAME = "trip-organizer-v6";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -49,15 +50,12 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const network = fetch(event.request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-          return response;
-        })
-        .catch(() => cached);
-      return cached || network;
-    })
+    fetch(event.request)
+      .then((response) => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });

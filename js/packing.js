@@ -151,35 +151,78 @@ const PACKING_CATEGORY_LABELS = {
 };
 
 const PACKING_TEMPLATES = {
-  mare: [
+  sud_est_asiatico: [
+    { category: "abbigliamento", name: "Abbigliamento leggero e traspirante", quantity: 5 },
     { category: "abbigliamento", name: "Costume da bagno", quantity: 2 },
-    { category: "abbigliamento", name: "Telo mare", quantity: 1 },
-    { category: "altro", name: "Crema solare", quantity: 1 },
-    { category: "altro", name: "Occhiali da sole", quantity: 1 },
-    { category: "abbigliamento", name: "Infradito", quantity: 1 },
-    { category: "documenti", name: "Documento d'identità", quantity: 1 },
-    { category: "elettronica", name: "Caricabatterie", quantity: 1 }
-  ],
-  montagna: [
-    { category: "abbigliamento", name: "Giacca impermeabile", quantity: 1 },
-    { category: "abbigliamento", name: "Pile/maglione caldo", quantity: 2 },
-    { category: "abbigliamento", name: "Scarponi/scarpe da trekking", quantity: 1 },
-    { category: "abbigliamento", name: "Guanti e cappello", quantity: 1 },
-    { category: "altro", name: "Crema solare", quantity: 1 },
-    { category: "documenti", name: "Documento d'identità", quantity: 1 },
-    { category: "elettronica", name: "Caricabatterie", quantity: 1 }
-  ],
-  citta: [
-    { category: "abbigliamento", name: "Scarpe comode da camminata", quantity: 1 },
-    { category: "elettronica", name: "Caricabatterie", quantity: 1 },
+    { category: "abbigliamento", name: "Foulard per coprire le spalle nei templi", quantity: 1 },
+    { category: "abbigliamento", name: "Infradito/ciabatte", quantity: 1 },
+    { category: "salute", name: "Repellente zanzare ad alta concentrazione", quantity: 1 },
+    { category: "salute", name: "Crema solare alta protezione", quantity: 1 },
+    { category: "salute", name: "Antidiarroico e sali reidratanti", quantity: 1 },
+    { category: "altro", name: "Ombrello pieghevole (stagione monsoni)", quantity: 1 },
+    { category: "elettronica", name: "Adattatore universale", quantity: 1 },
     { category: "elettronica", name: "Powerbank", quantity: 1 },
+    { category: "documenti", name: "Passaporto (validità residua min. 6 mesi)", quantity: 1 },
+    { category: "documenti", name: "Assicurazione di viaggio", quantity: 1 }
+  ],
+  sud_america: [
+    { category: "abbigliamento", name: "Giacca a vento impermeabile", quantity: 1 },
+    { category: "abbigliamento", name: "Strati termici (sbalzi giorno/notte)", quantity: 2 },
+    { category: "abbigliamento", name: "Scarponcini da trekking", quantity: 1 },
+    { category: "abbigliamento", name: "Cappello e guanti leggeri", quantity: 1 },
+    { category: "salute", name: "Pastiglie per mal di montagna (alta quota)", quantity: 1 },
+    { category: "salute", name: "Crema solare alta protezione", quantity: 1 },
+    { category: "salute", name: "Repellente insetti", quantity: 1 },
+    { category: "documenti", name: "Passaporto", quantity: 1 },
+    { category: "documenti", name: "Contanti in dollari (riserva)", quantity: 1 },
+    { category: "elettronica", name: "Adattatore presa tipo C/I", quantity: 1 },
+    { category: "elettronica", name: "Powerbank", quantity: 1 }
+  ],
+  caraibi: [
+    { category: "abbigliamento", name: "Costumi da bagno", quantity: 3 },
+    { category: "abbigliamento", name: "Cappello a tesa larga", quantity: 1 },
+    { category: "abbigliamento", name: "Copricostume leggero", quantity: 1 },
+    { category: "salute", name: "Crema solare waterproof alta protezione", quantity: 1 },
+    { category: "salute", name: "Doposole", quantity: 1 },
+    { category: "salute", name: "Repellente zanzare", quantity: 1 },
+    { category: "altro", name: "Occhiali da sole", quantity: 1 },
+    { category: "altro", name: "Sacchetto stagno per il telefono", quantity: 1 },
+    { category: "altro", name: "Ciabatte/sandali", quantity: 1 },
+    { category: "documenti", name: "Passaporto", quantity: 1 }
+  ],
+  citta_europea: [
+    { category: "abbigliamento", name: "Scarpe comode da camminata", quantity: 1 },
+    { category: "abbigliamento", name: "Outfit per una serata/cena", quantity: 1 },
+    { category: "altro", name: "Ombrello tascabile", quantity: 1 },
+    { category: "elettronica", name: "Powerbank", quantity: 1 },
+    { category: "elettronica", name: "Caricabatterie", quantity: 1 },
     { category: "documenti", name: "Documento d'identità", quantity: 1 },
-    { category: "documenti", name: "Carta di credito/contanti", quantity: 1 },
-    { category: "igiene", name: "Kit da viaggio igiene", quantity: 1 }
+    { category: "documenti", name: "Carta di credito/contanti", quantity: 1 }
+  ],
+  montagna_neve: [
+    { category: "abbigliamento", name: "Giacca e pantaloni da sci", quantity: 1 },
+    { category: "abbigliamento", name: "Strati termici", quantity: 2 },
+    { category: "abbigliamento", name: "Guanti, cappello, scaldacollo", quantity: 1 },
+    { category: "abbigliamento", name: "Calzini tecnici da sci", quantity: 3 },
+    { category: "salute", name: "Crema solare alta protezione (riflesso neve)", quantity: 1 },
+    { category: "salute", name: "Burrocacao/doposole", quantity: 1 },
+    { category: "altro", name: "Occhiali da sole o maschera da sci", quantity: 1 },
+    { category: "documenti", name: "Documento d'identità", quantity: 1 }
+  ],
+  safari_africa: [
+    { category: "abbigliamento", name: "Abbigliamento leggero colori neutri", quantity: 4 },
+    { category: "abbigliamento", name: "Giacca leggera (mattine/sere fresche)", quantity: 1 },
+    { category: "abbigliamento", name: "Cappello a tesa larga", quantity: 1 },
+    { category: "salute", name: "Repellente zanzare ad alta concentrazione", quantity: 1 },
+    { category: "salute", name: "Antimalarici (su indicazione medica)", quantity: 1 },
+    { category: "salute", name: "Crema solare alta protezione", quantity: 1 },
+    { category: "documenti", name: "Passaporto e certificato febbre gialla", quantity: 1 },
+    { category: "elettronica", name: "Binocolo", quantity: 1 },
+    { category: "elettronica", name: "Powerbank", quantity: 1 }
   ],
   lavoro: [
     { category: "elettronica", name: "Laptop e caricabatterie", quantity: 1 },
-    { category: "elettronica", name: "Adattatore/presa universale", quantity: 1 },
+    { category: "elettronica", name: "Adattatore universale", quantity: 1 },
     { category: "abbigliamento", name: "Outfit formale", quantity: 2 },
     { category: "documenti", name: "Biglietti da visita", quantity: 1 },
     { category: "documenti", name: "Documento d'identità", quantity: 1 }

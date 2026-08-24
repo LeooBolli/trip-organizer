@@ -1,64 +1,74 @@
 /* ============================================================
-   Trip Organizer — stile mobile-first, tema chiaro/scuro
-   Palette ripresa da Habit Tracker: blu / arancione / verde,
-   card arrotondate con ombra morbida, badge pillola.
+   Trip Organizer — stile "travel app": sfondo salvia tenue,
+   card scure protagoniste, accento arancione, tipografia
+   Plus Jakarta Sans con corsivo per i titoli.
    ============================================================ */
 
 :root {
-  --bg: #F3F6FB;
+  --bg: #E9EEE2;
+  --bg-alt: #DCE5D1;
   --surface: #FFFFFF;
-  --surface-alt: #EEF1F7;
-  --text: #1F2937;
-  --text-muted: #6B7280;
-  --text-soft: #94A0B4;
-  --border: #E7ECF5;
+  --surface-alt: #EFF3E8;
+  --surface-dark: #142433;
+  --surface-dark-alt: #1F3245;
 
-  --accent: #2F6FED;
-  --accent-dark: #1E4FB8;
-  --accent-light: #EAF1FF;
+  --text: #16232C;
+  --text-muted: #6C7768;
+  --text-soft: #98A28D;
+  --text-on-dark: #F6F3EA;
+  --text-muted-on-dark: #A9B6C2;
+
+  --border: #DBE2D0;
+  --border-on-dark: rgba(255, 255, 255, 0.12);
+
+  --accent: #EE8F45;
+  --accent-dark: #D97324;
+  --accent-light: #FBE4CC;
   --accent-contrast: #FFFFFF;
 
-  --orange: #FF8A3D;
-  --orange-dark: #E86F1F;
-  --orange-light: #FFEFE0;
+  --positive: #3F9E6D;
+  --positive-light: #DFEFE1;
+  --negative: #D8543B;
+  --negative-light: #FBE1DA;
 
-  --positive: #1E9E70;
-  --positive-light: #E5FBF3;
-  --negative: #D64545;
-  --negative-light: #FDEDEE;
+  --radius: 26px;
+  --radius-md: 18px;
+  --radius-sm: 12px;
+  --shadow: 0 14px 32px rgba(20, 36, 51, 0.12);
+  --shadow-sm: 0 4px 14px rgba(20, 36, 51, 0.08);
 
-  --radius: 18px;
-  --radius-md: 12px;
-  --radius-sm: 8px;
-  --shadow: 0 6px 20px rgba(16, 35, 63, 0.08);
-  --shadow-sm: 0 2px 8px rgba(16, 35, 63, 0.06);
+  --font-display: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "SF Pro Text", Segoe UI, Roboto, sans-serif;
 }
 
 [data-theme="dark"] {
-  --bg: #0B1626;
-  --surface: #142644;
-  --surface-alt: #1B3155;
-  --text: #E7EDF8;
-  --text-muted: #9AA8C2;
-  --text-soft: #7C8BAE;
-  --border: #24406B;
+  --bg: #0A0F0C;
+  --bg-alt: #121810;
+  --surface: #182420;
+  --surface-alt: #1E2B25;
+  --surface-dark: #101A26;
+  --surface-dark-alt: #1B2A3A;
 
-  --accent: #5B8DFF;
-  --accent-dark: #7FA3FF;
-  --accent-light: rgba(91, 141, 255, 0.16);
-  --accent-contrast: #0B1626;
+  --text: #ECEFE6;
+  --text-muted: #9CAA96;
+  --text-soft: #71806C;
+  --text-on-dark: #F6F3EA;
+  --text-muted-on-dark: #A9B6C2;
 
-  --orange: #FFA05C;
-  --orange-dark: #FFB681;
-  --orange-light: rgba(255, 138, 61, 0.16);
+  --border: #2A362E;
+  --border-on-dark: rgba(255, 255, 255, 0.1);
 
-  --positive: #34C980;
-  --positive-light: rgba(52, 201, 128, 0.14);
-  --negative: #FF6B6B;
-  --negative-light: rgba(255, 107, 107, 0.14);
+  --accent: #F2A05F;
+  --accent-dark: #FFB878;
+  --accent-light: rgba(242, 160, 95, 0.18);
+  --accent-contrast: #16232C;
 
-  --shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --positive: #4FBD87;
+  --positive-light: rgba(79, 189, 135, 0.15);
+  --negative: #E37357;
+  --negative-light: rgba(227, 115, 87, 0.15);
+
+  --shadow: 0 14px 32px rgba(0, 0, 0, 0.45);
+  --shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.35);
 }
 
 * { box-sizing: border-box; }
@@ -68,7 +78,8 @@ html, body {
   padding: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Segoe UI, Roboto, sans-serif;
+  font-family: var(--font-display);
+  font-weight: 500;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -90,14 +101,14 @@ header.top-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
+  padding: calc(env(safe-area-inset-top, 0px) + 14px) 16px 12px;
   background: var(--bg);
-  border-bottom: 1px solid var(--border);
 }
 
 header.top-bar h1 {
-  font-size: 1.15rem;
-  font-weight: 700;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
   margin: 0;
 }
 
@@ -133,22 +144,35 @@ section.view { display: block; }
   justify-content: center;
   min-height: 100vh;
   padding: 24px;
-  background: radial-gradient(circle at 15% 0%, var(--accent-dark) 0%, transparent 55%),
-              linear-gradient(160deg, #10233F 0%, #16305A 55%, var(--accent-dark) 130%);
+  background: radial-gradient(circle at 20% 0%, rgba(238, 143, 69, 0.35) 0%, transparent 55%),
+              linear-gradient(165deg, #0E1620 0%, #142433 55%, #1F3245 130%);
 }
 
 .login-card {
-  background: var(--surface);
+  background: var(--surface-dark);
+  color: var(--text-on-dark);
   border-radius: var(--radius);
-  box-shadow: 0 20px 50px rgba(16, 35, 63, 0.35);
-  padding: 36px 26px 28px;
+  box-shadow: 0 24px 60px rgba(6, 10, 15, 0.5);
+  padding: 40px 28px 30px;
   width: 100%;
   max-width: 360px;
   text-align: center;
 }
 
-.login-card h1 { margin-top: 0; font-size: 1.4rem; }
-.login-card p { color: var(--text-muted); font-size: 0.9rem; }
+.login-card h1 {
+  margin-top: 0;
+  font-size: 1.6rem;
+  font-weight: 800;
+  font-style: italic;
+}
+.login-card p { color: var(--text-muted-on-dark); font-size: 0.92rem; font-weight: 500; }
+.login-card input {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border-on-dark);
+  color: var(--text-on-dark);
+}
+.login-card input::placeholder { color: var(--text-muted-on-dark); }
+#login-status { color: var(--text-muted-on-dark) !important; }
 
 /* --- Forms --- */
 form {
@@ -159,9 +183,10 @@ form {
 
 input, select, textarea {
   font: inherit;
-  padding: 12px 13px;
+  font-weight: 600;
+  padding: 13px 15px;
   border-radius: var(--radius-md);
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--border);
   background: var(--surface);
   color: var(--text);
   width: 100%;
@@ -179,7 +204,7 @@ textarea { resize: vertical; min-height: 60px; }
 label {
   font-size: 0.78rem;
   color: var(--text-muted);
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: -4px;
 }
 
@@ -188,8 +213,8 @@ button[type="submit"], .primary-btn {
   color: var(--accent-contrast);
   border: none;
   border-radius: var(--radius-md);
-  padding: 13px;
-  font-weight: 700;
+  padding: 14px;
+  font-weight: 800;
   font-size: 0.95rem;
   cursor: pointer;
   transition: background 0.15s ease, transform 0.05s ease;
@@ -199,29 +224,29 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
 
 .secondary-btn {
   background: var(--surface);
-  color: var(--accent);
-  border: 1.5px solid var(--accent);
+  color: var(--text);
+  border: 1.5px solid var(--border);
   border-radius: var(--radius-md);
   padding: 11px;
   cursor: pointer;
-  font-weight: 600;
-  transition: background 0.15s ease;
+  font-weight: 700;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
-.secondary-btn:hover { background: var(--accent-light); }
+.secondary-btn:hover { background: var(--surface-alt); border-color: var(--accent); }
 .secondary-btn:active { transform: scale(0.98); }
 
 .card {
   background: var(--surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: 20px 22px;
+  padding: 22px 22px;
   margin-bottom: 16px;
 }
 
 .card > h2, .card > h3 {
   margin-top: 0;
-  font-size: 1.02rem;
-  font-weight: 700;
+  font-size: 1.05rem;
+  font-weight: 800;
 }
 
 /* --- Theme toggle --- */
@@ -230,6 +255,7 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
   align-items: center;
   gap: 8px;
   font-size: 0.85rem;
+  font-weight: 600;
   color: var(--text-muted);
 }
 
@@ -240,22 +266,27 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
   gap: 14px;
   width: 100%;
   text-align: left;
-  background: var(--surface);
+  background: var(--surface-dark);
+  color: var(--text-on-dark);
   border: none;
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: 14px 16px;
+  padding: 16px 18px;
   margin-bottom: 12px;
   cursor: pointer;
   transition: transform 0.05s ease, box-shadow 0.15s ease;
 }
 .trip-card:active { transform: scale(0.98); }
 
+.trip-card .trip-info strong { color: var(--text-on-dark); font-weight: 700; }
+.trip-card .trip-info small { color: var(--text-muted-on-dark); }
+.trip-card .trip-emoji { background: rgba(255, 255, 255, 0.12); }
+
 .trip-emoji {
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
-  border-radius: 14px;
+  border-radius: 16px;
   background: var(--accent-light);
   display: flex;
   align-items: center;
@@ -264,6 +295,7 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
 }
 
 .trip-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.trip-info strong { font-weight: 700; }
 .trip-info small { color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .trip-detail-header {
@@ -272,7 +304,7 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
   gap: 12px;
   margin-bottom: 4px;
 }
-.trip-detail-header h2 { margin: 0; }
+.trip-detail-header h2 { margin: 0; font-weight: 800; letter-spacing: -0.01em; }
 #trip-emoji-edit {
   position: relative;
   border: none;
@@ -302,6 +334,7 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
   text-align: center;
   padding: 26px 10px;
   font-size: 0.9rem;
+  font-weight: 600;
 }
 
 /* --- Tabs --- */
@@ -324,7 +357,7 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
   background: none;
   border-radius: var(--radius-sm);
   color: var(--text-muted);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.85rem;
   white-space: nowrap;
   cursor: pointer;
@@ -338,14 +371,20 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
 }
 
 /* --- Balance --- */
+.balance-card {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+  box-shadow: 0 14px 32px rgba(217, 115, 36, 0.3);
+}
 #balance-summary {
   text-align: center;
-  font-size: 1.1rem;
-  padding: 14px 10px;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #fff;
+  padding: 10px 6px;
 }
-.balance-neutral { color: var(--positive); font-weight: 700; }
-.balance-positive { color: var(--positive); font-weight: 700; }
-.balance-negative { color: var(--negative); font-weight: 700; }
+.balance-neutral { color: #142433; font-weight: 800; }
+.balance-positive { color: #142433; font-weight: 800; }
+.balance-negative { color: #142433; font-weight: 800; }
 
 /* --- Expenses --- */
 .expense-row {
@@ -358,9 +397,11 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
 .expense-row:last-child { border-bottom: none; }
 
 .expense-main { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 2px; }
+.expense-main strong { font-weight: 700; }
 .expense-main small { color: var(--text-muted); font-size: 0.78rem; }
 
 .expense-amount { display: flex; flex-direction: column; align-items: flex-end; text-align: right; flex-shrink: 0; }
+.expense-amount strong { font-weight: 700; }
 .expense-amount small { color: var(--text-muted); }
 
 .category-row {
@@ -369,6 +410,7 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
   align-items: center;
   gap: 10px;
   font-size: 0.85rem;
+  font-weight: 600;
   margin-bottom: 10px;
 }
 
@@ -387,11 +429,12 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
 
 /* --- Bookings --- */
 .booking-card {
-  background: var(--surface);
+  background: var(--surface-dark);
+  color: var(--text-on-dark);
   border: none;
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: 16px 18px;
+  padding: 18px 20px;
   margin-bottom: 14px;
 }
 
@@ -402,24 +445,28 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
 }
 
 .booking-header > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.booking-header small { color: var(--text-muted); }
+.booking-header strong { color: var(--text-on-dark); font-weight: 700; }
+.booking-header small { color: var(--text-muted-on-dark); }
+.booking-header .icon-btn { color: var(--text-muted-on-dark); }
+.booking-header .icon-btn:hover { background: rgba(255, 255, 255, 0.1); }
 
 .booking-icon {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   flex-shrink: 0;
-  border-radius: 12px;
-  background: var(--orange-light);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.15rem;
 }
 
-.booking-dates, .booking-code, .booking-notes {
+.booking-dates, .booking-code, .booking-notes, .booking-address {
   font-size: 0.85rem;
-  color: var(--text-muted);
+  color: var(--text-muted-on-dark);
   margin-top: 8px;
+  font-weight: 600;
 }
 
 .booking-docs {
@@ -430,17 +477,17 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
 }
 
 .doc-chip {
-  background: var(--surface-alt);
+  background: rgba(255, 255, 255, 0.1);
   border: none;
   border-radius: 999px;
   padding: 6px 12px;
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  color: var(--text);
+  color: var(--text-on-dark);
   transition: background 0.15s ease;
 }
-.doc-chip:hover { background: var(--accent-light); color: var(--accent-dark); }
+.doc-chip:hover { background: rgba(255, 255, 255, 0.18); }
 
 .hidden-input { display: none; }
 
@@ -473,6 +520,7 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
   border-bottom: 1px solid var(--border);
   color: var(--text);
   font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
 }
 .search-result-item:last-child { border-bottom: none; }
@@ -483,6 +531,7 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
   align-items: center;
   gap: 8px;
   font-size: 0.85rem;
+  font-weight: 600;
   background: var(--accent-light);
   border: none;
   border-radius: var(--radius-md);
@@ -490,18 +539,12 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
 }
 .location-preview span { flex: 1; color: var(--accent-dark); }
 
-.booking-address {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  margin-top: 8px;
-}
-
 .booking-map {
   height: 160px;
   border-radius: var(--radius-md);
   margin-top: 8px;
   overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-on-dark);
 }
 
 .open-maps-link {
@@ -510,7 +553,7 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
   font-size: 0.85rem;
   color: var(--accent);
   text-decoration: none;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 /* --- Card header / helpers riusati dalle nuove sezioni --- */
@@ -522,8 +565,8 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
   margin-bottom: 4px;
 }
 .card-header h3 { margin: 0; }
-.card-sub { color: var(--text-soft); font-size: 0.8rem; font-weight: 600; }
-.card-text { color: var(--text-muted); font-size: 0.88rem; line-height: 1.5; margin: 4px 0 0; }
+.card-sub { color: var(--text-soft); font-size: 0.8rem; font-weight: 700; }
+.card-text { color: var(--text-muted); font-size: 0.88rem; font-weight: 500; line-height: 1.5; margin: 4px 0 0; }
 
 .form-row-split { display: flex; gap: 10px; }
 .form-row-split > div { flex: 1; display: flex; flex-direction: column; gap: 4px; }
@@ -558,7 +601,7 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
   background: none;
   border-radius: var(--radius-sm);
   color: var(--text-muted);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.82rem;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
@@ -570,7 +613,8 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
 }
 
 /* --- Itinerario --- */
-.itinerary-day-card { padding: 18px 18px 8px; }
+.itinerary-day-card { padding: 20px 20px 8px; }
+.itinerary-day-card .card-header h3 { font-style: italic; }
 .itinerary-item-list { display: flex; flex-direction: column; }
 
 .itinerary-item {
@@ -586,11 +630,18 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
   gap: 12px;
 }
 .itinerary-item-header > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.itinerary-item-header strong { font-weight: 700; }
 .itinerary-item-header small { color: var(--text-muted); }
 
 .itinerary-item-header .itinerary-item-actions { flex: 0 0 auto; flex-direction: row; display: flex; gap: 2px; }
 .itinerary-item-actions .icon-btn:disabled { opacity: 0.3; cursor: default; }
 .itinerary-item-actions .icon-btn:disabled:hover { background: none; }
+
+.itinerary-item .booking-icon {
+  background: var(--accent-light);
+  color: var(--accent-dark);
+}
+.itinerary-item .booking-address { color: var(--text-muted); }
 
 .itinerary-connector {
   display: flex;
@@ -598,7 +649,7 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
   gap: 6px;
   color: var(--text-soft);
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: 700;
   padding: 2px 0 2px 20px;
   margin-bottom: 6px;
 }
@@ -609,15 +660,15 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
   justify-content: space-between;
   gap: 10px;
   margin-top: 10px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 /* --- Valigia --- */
 .packing-category-header {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
   color: var(--text-soft);
   margin: 14px 0 6px;
 }
@@ -641,6 +692,7 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
   flex: 1;
   min-width: 0;
   cursor: pointer;
+  font-weight: 600;
 }
 .packing-check input { width: auto; accent-color: var(--accent); }
 .packing-check small { color: var(--text-muted); }
@@ -654,6 +706,7 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
   gap: 8px;
   color: var(--text-muted);
   font-size: 0.88rem;
+  font-weight: 500;
   line-height: 1.5;
 }
 
@@ -669,7 +722,7 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
   padding: 12px 14px;
 }
 .jetlag-step-label {
-  font-weight: 700;
+  font-weight: 800;
   font-size: 0.85rem;
   color: var(--accent-dark);
   margin-bottom: 4px;
@@ -677,5 +730,6 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
 .jetlag-step-text {
   font-size: 0.85rem;
   color: var(--text-muted);
+  font-weight: 500;
   line-height: 1.4;
 }
