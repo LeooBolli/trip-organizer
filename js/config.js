@@ -14,6 +14,12 @@ window.APP_CONFIG = {
     "biagettimariachiara@gmail.com"
   ],
 
+  // Nome mostrato al posto dell'email (es. "Connesso come Leonardo")
+  USER_NAMES: {
+    "leonardobolli@gmail.com": "Leonardo",
+    "biagettimariachiara@gmail.com": "Chiara"
+  },
+
   DEFAULT_BASE_CURRENCY: "EUR",
   SUPPORTED_CURRENCIES: ["EUR", "USD", "GBP", "CHF", "JPY"]
 };

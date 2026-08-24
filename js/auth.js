@@ -47,7 +47,8 @@ const Auth = {
     document.getElementById("view-login").classList.toggle("hidden", loggedIn);
     document.getElementById("app-shell").classList.toggle("hidden", !loggedIn);
     if (loggedIn) {
-      document.getElementById("current-user-email").textContent = this.currentUser.email;
+      const email = this.currentUser.email;
+      document.getElementById("current-user-email").textContent = window.APP_CONFIG.USER_NAMES[email] || email;
     }
   },
 
