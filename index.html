@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trip Organizer</title>
+<meta name="theme-color" content="#2f6fed">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Trip Organizer">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H"
+      crossorigin="anonymous">
+</head>
+<body>
+
+<!-- LOGIN -->
+<section id="view-login">
+  <div class="login-card">
+    <h1>🧳 Trip Organizer</h1>
+    <p>Accedi per gestire i viaggi insieme.</p>
+    <form id="login-form">
+      <input type="email" id="login-email" placeholder="La tua email" required>
+      <input type="password" id="login-password" placeholder="Password" required>
+      <button type="submit">Accedi</button>
+    </form>
+    <p id="login-status" style="font-size:0.85rem;color:var(--text-muted)"></p>
+  </div>
+</section>
+
+<!-- APP -->
+<div id="app-shell" class="hidden">
+  <header class="top-bar">
+    <h1 id="header-title">🧳 Trip Organizer</h1>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <label class="theme-switch">🌙 <input type="checkbox" id="theme-toggle"></label>
+      <button id="logout-btn" class="icon-btn" title="Esci">⏻</button>
+    </div>
+  </header>
+
+  <main>
+    <p style="font-size:0.8rem;color:var(--text-muted);margin-top:0;">Connesso come <span id="current-user-email"></span></p>
+
+    <!-- VIEW: TRIPS LIST -->
+    <section id="view-trips" class="view">
+      <label class="theme-switch" style="margin-bottom:12px;">
+        <input type="checkbox" id="show-archived-toggle"> Mostra viaggi archiviati
+      </label>
+
+      <div id="trips-list"></div>
+
+      <div class="card">
+        <h3>Nuovo viaggio</h3>
+        <form id="new-trip-form">
+          <label>Nome viaggio</label>
+          <input type="text" id="trip-name" placeholder="Es. Giappone 2026" required>
+
+          <label>Destinazione</label>
+          <input type="text" id="trip-destination" placeholder="Es. Tokyo, Kyoto">
+
+          <label>Emoji</label>
+          <input type="text" id="trip-emoji" placeholder="🗻" maxlength="4">
+
+          <label>Data inizio</label>
+          <input type="date" id="trip-start">
+
+          <label>Data fine</label>
+          <input type="date" id="trip-end">
+
+          <label>Valuta base</label>
+          <select id="trip-currency"></select>
+
+          <button type="submit">Crea viaggio</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- VIEW: TRIP DETAIL -->
+    <section id="view-trip-detail" class="view hidden">
+      <button id="back-to-trips" class="secondary-btn" style="margin-bottom:12px;">← Tutti i viaggi</button>
+      <h2 id="trip-detail-title"></h2>
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="tab-expenses">💰 Spese</button>
+        <button class="tab-btn" data-tab="tab-bookings">📋 Prenotazioni</button>
+        <button class="tab-btn" data-tab="tab-itinerary">🗓️ Itinerario</button>
+        <button class="tab-btn" data-tab="tab-packing">🧳 Valigia</button>
+        <button class="tab-btn" data-tab="tab-jetlag">🌙 Jet Lag</button>
+        <button class="tab-btn" data-tab="tab-summary">📊 Riepilogo</button>
+      </div>
+
+      <!-- TAB: EXPENSES -->
+      <div id="tab-expenses" class="tab-panel">
+        <div class="card">
+          <div id="balance-summary"></div>
+        </div>
+
+        <div class="card">
+          <h3>Aggiungi spesa</h3>
+          <form id="new-expense-form">
+            <label>Descrizione</label>
+            <input type="text" id="expense-description" placeholder="Es. Cena ristorante" required>
+
+            <label>Categoria</label>
+            <select id="expense-category">
+              <option value="voli">✈️ Voli</option>
+              <option value="trasporti">🚌 Trasporti locali</option>
+              <option value="auto">🚗 Auto/Noleggio</option>
+              <option value="alloggio">🏨 Alloggio</option>
+              <option value="colazione">🍳 Colazione</option>
+              <option value="pranzo">🍽️ Pranzo</option>
+              <option value="cena">🍷 Cena</option>
+              <option value="bar">☕ Bar/Caffè</option>
+              <option value="spesa">🛒 Spesa/Supermercato</option>
+              <option value="escursioni">🎟️ Escursioni/Attività</option>
+              <option value="intrattenimento">🎭 Intrattenimento</option>
+              <option value="shopping">🛍️ Shopping</option>
+              <option value="assicurazione">🛡️ Assicurazione</option>
+              <option value="salute">💊 Salute/Farmacia</option>
+              <option value="regali">🎁 Regali/Souvenir</option>
+              <option value="sim">📶 SIM/Internet</option>
+              <option value="mance">💰 Mance</option>
+              <option value="altro" selected>📦 Altro</option>
+            </select>
+
+            <label>Importo</label>
+            <input type="number" id="expense-amount" step="0.01" min="0.01" required>
+
+            <label>Valuta</label>
+            <select id="expense-currency"></select>
+
+            <div id="exchange-rate-wrapper" class="hidden">
+              <label>Cambio verso la valuta base del viaggio</label>
+              <input type="number" id="expense-rate" step="0.0001" min="0" value="1">
+            </div>
+
+            <label>Data</label>
+            <input type="date" id="expense-date" required>
+
+            <label>Divisione spesa</label>
+            <select id="expense-split">
+              <option value="equal">Equa (50/50)</option>
+              <option value="custom">Personalizzata</option>
+            </select>
+
+            <div id="custom-split-wrapper" class="hidden">
+              <label>% a carico di chi ha pagato</label>
+              <input type="number" id="expense-payer-share" min="0" max="100" value="50">
+            </div>
+
+            <button type="submit">Aggiungi spesa</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h3>Storico spese</h3>
+          <div id="expenses-list"></div>
+        </div>
+      </div>
+
+      <!-- TAB: BOOKINGS -->
+      <div id="tab-bookings" class="tab-panel hidden">
+        <div class="card">
+          <h3>Aggiungi prenotazione</h3>
+          <form id="new-booking-form">
+            <label>Tipo</label>
+            <select id="booking-type">
+              <option value="flight">✈️ Volo</option>
+              <option value="hotel">🏨 Hotel</option>
+              <option value="car">🚗 Auto a noleggio</option>
+              <option value="other">📌 Altro</option>
+            </select>
+
+            <label>Cerca luogo (hotel, aeroporto, indirizzo...)</label>
+            <div class="location-search-wrapper">
+              <input type="text" id="booking-search" placeholder="Es. Hotel Granvia Kyoto" autocomplete="off">
+              <div id="booking-search-results" class="search-results hidden"></div>
+            </div>
+            <div id="booking-location-preview" class="location-preview hidden">
+              📍 <span id="booking-location-text"></span>
+              <button type="button" id="booking-location-clear" class="icon-btn" title="Rimuovi posizione">✕</button>
+            </div>
+
+            <label>Titolo</label>
+            <input type="text" id="booking-title" placeholder="Es. Volo Milano - Tokyo" required>
+
+            <label>Fornitore / compagnia</label>
+            <input type="text" id="booking-provider" placeholder="Es. ANA, Booking.com, Hertz">
+
+            <label>Inizio</label>
+            <input type="datetime-local" id="booking-start">
+
+            <label>Fine</label>
+            <input type="datetime-local" id="booking-end">
+
+            <label>Codice prenotazione</label>
+            <input type="text" id="booking-code">
+
+            <label>Note</label>
+            <textarea id="booking-notes"></textarea>
+
+            <label>Documento (PDF o foto)</label>
+            <input type="file" id="booking-file" accept="application/pdf,image/*">
+
+            <button type="submit">Aggiungi prenotazione</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h3>Le tue prenotazioni</h3>
+          <div id="bookings-list"></div>
+        </div>
+      </div>
+
+      <!-- TAB: ITINERARY -->
+      <div id="tab-itinerary" class="tab-panel hidden">
+        <div class="card">
+          <h3>Aggiungi tappa</h3>
+          <form id="new-itinerary-form">
+            <label>Giorno</label>
+            <input type="date" id="itinerary-day" required>
+
+            <label>Tipo</label>
+            <select id="itinerary-type">
+              <option value="attraction">🎫 Attrazione</option>
+              <option value="transport">🚌 Trasporto</option>
+              <option value="meal">🍽️ Pasto</option>
+              <option value="accommodation">🏨 Alloggio</option>
+              <option value="free_time">🌤️ Tempo libero</option>
+              <option value="other" selected>📌 Altro</option>
+            </select>
+
+            <label>Titolo</label>
+            <input type="text" id="itinerary-title" placeholder="Es. Visita al Fushimi Inari" required>
+
+            <label>Cerca luogo (opzionale)</label>
+            <div class="location-search-wrapper">
+              <input type="text" id="itinerary-search" placeholder="Es. Fushimi Inari Taisha" autocomplete="off">
+              <div id="itinerary-search-results" class="search-results hidden"></div>
+            </div>
+            <div id="itinerary-location-preview" class="location-preview hidden">
+              📍 <span id="itinerary-location-text"></span>
+              <button type="button" id="itinerary-location-clear" class="icon-btn" title="Rimuovi posizione">✕</button>
+            </div>
+
+            <div class="form-row-split">
+              <div>
+                <label>Inizio</label>
+                <input type="datetime-local" id="itinerary-start">
+              </div>
+              <div>
+                <label>Fine</label>
+                <input type="datetime-local" id="itinerary-end">
+              </div>
+            </div>
+
+            <div class="form-row-split">
+              <div>
+                <label>Viaggio verso tappa dopo (min)</label>
+                <input type="number" id="itinerary-travel-minutes" min="0" placeholder="Es. 15">
+              </div>
+              <div>
+                <label>Mezzo</label>
+                <select id="itinerary-transport-mode">
+                  <option value="">—</option>
+                  <option value="walk">🚶 A piedi</option>
+                  <option value="car">🚗 Auto</option>
+                  <option value="public">🚆 Mezzi pubblici</option>
+                  <option value="taxi">🚕 Taxi</option>
+                  <option value="bike">🚲 Bici</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row-split">
+              <div>
+                <label>Costo (opzionale)</label>
+                <input type="number" id="itinerary-cost" step="0.01" min="0">
+              </div>
+              <div>
+                <label>Valuta</label>
+                <select id="itinerary-currency"></select>
+              </div>
+            </div>
+
+            <div id="itinerary-exchange-rate-wrapper" class="hidden">
+              <label>Cambio verso la valuta base del viaggio</label>
+              <input type="number" id="itinerary-rate" step="0.0001" min="0" value="1">
+            </div>
+
+            <label>Note</label>
+            <textarea id="itinerary-notes"></textarea>
+
+            <button type="submit">Aggiungi tappa</button>
+          </form>
+        </div>
+
+        <div id="itinerary-days"></div>
+      </div>
+
+      <!-- TAB: PACKING (VALIGIA) -->
+      <div id="tab-packing" class="tab-panel hidden">
+        <div class="segmented" id="packing-owner-switch">
+          <button type="button" class="segmented-btn active" data-owner="me">🧍 La mia valigia</button>
+          <button type="button" class="segmented-btn" data-owner="other">🧍 Valigia di <span id="packing-other-label">compagno/a</span></button>
+        </div>
+
+        <div class="card" id="packing-templates-card">
+          <h3>Liste predefinite</h3>
+          <p class="card-text">Aggiungi in un tocco una selezione di oggetti già pronta alla tua valigia.</p>
+          <div class="settings-actions">
+            <button type="button" class="secondary-btn packing-template-btn" data-template="mare">🏖️ Mare</button>
+            <button type="button" class="secondary-btn packing-template-btn" data-template="montagna">🏔️ Montagna/Neve</button>
+            <button type="button" class="secondary-btn packing-template-btn" data-template="citta">🏙️ Città</button>
+            <button type="button" class="secondary-btn packing-template-btn" data-template="lavoro">💼 Lavoro</button>
+          </div>
+        </div>
+
+        <div class="card" id="packing-add-card">
+          <h3>Aggiungi oggetto</h3>
+          <form id="new-packing-form">
+            <label>Categoria</label>
+            <select id="packing-category">
+              <option value="abbigliamento">👕 Abbigliamento</option>
+              <option value="elettronica">🔌 Elettronica</option>
+              <option value="documenti">📄 Documenti</option>
+              <option value="igiene">🧴 Igiene</option>
+              <option value="salute">💊 Salute</option>
+              <option value="altro" selected>📦 Altro</option>
+            </select>
+
+            <label>Nome oggetto</label>
+            <input type="text" id="packing-name" placeholder="Es. Costume da bagno" required>
+
+            <label>Quantità</label>
+            <input type="number" id="packing-quantity" min="1" value="1">
+
+            <button type="submit">Aggiungi</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3 id="packing-list-title">La mia valigia</h3>
+            <span id="packing-progress" class="card-sub"></span>
+          </div>
+          <div id="packing-list"></div>
+        </div>
+      </div>
+
+      <!-- TAB: JET LAG -->
+      <div id="tab-jetlag" class="tab-panel hidden">
+        <div class="card">
+          <h3>Consigli generali</h3>
+          <ul class="tips-list">
+            <li>Nei 2-3 giorni prima della partenza, sposta gradualmente l'orario dei pasti e del sonno verso quello di destinazione.</li>
+            <li>In aereo, imposta subito l'orologio sull'orario di destinazione e prova a dormire/restare sveglio secondo quel fuso.</li>
+            <li>Cerca luce naturale al momento giusto (vedi il piano qui sotto) ed evitala quando a destinazione dovrebbe essere notte.</li>
+            <li>Evita alcol e limita la caffeina nelle 24h prima e durante il volo: disidratano e disturbano il sonno.</li>
+            <li>Bevi molta acqua e muoviti spesso durante i voli lunghi.</li>
+            <li>Se la usi, la melatonina va presa vicino all'orario in cui vuoi addormentarti a destinazione.</li>
+          </ul>
+          <p class="card-text">Consigli generali, non sostituiscono un parere medico.</p>
+        </div>
+
+        <div class="card">
+          <h3>Piano di adattamento</h3>
+          <form id="jetlag-form">
+            <label>Data di partenza</label>
+            <input type="date" id="jetlag-departure-date">
+
+            <label>Differenza di fuso orario con la destinazione</label>
+            <select id="jetlag-offset"></select>
+
+            <button type="submit">Genera piano</button>
+          </form>
+          <div id="jetlag-plan"></div>
+        </div>
+      </div>
+
+      <!-- TAB: SUMMARY -->
+      <div id="tab-summary" class="tab-panel hidden">
+        <div class="card">
+          <h3>Spese per categoria</h3>
+          <div id="category-breakdown"></div>
+        </div>
+
+        <div class="card">
+          <h3>Esporta viaggio</h3>
+          <p style="color:var(--text-muted);font-size:0.9rem;">Scarica spese, prenotazioni e riepilogo in un file Excel.</p>
+          <button id="export-btn" class="primary-btn">⬇️ Esporta in Excel</button>
+        </div>
+
+        <div class="card">
+          <button id="archive-trip-btn" class="secondary-btn" style="width:100%;">Archivia viaggio</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Librerie esterne (versioni fissate + integrità SRI) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3/dist/umd/supabase.js"
+        integrity="sha384-qafw21c/iciq0VXsi9FzkfoQv5I/V0iqE4lSNcKXPnW9/UTJLnv5CcN4FHxVLnKg"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
+        integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH"
+        crossorigin="anonymous"></script>
+
+<!-- App -->
+<script src="js/config.js"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/trips.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/expenses.js"></script>
+<script src="js/bookings.js"></script>
+<script src="js/itinerary.js"></script>
+<script src="js/packing.js"></script>
+<script src="js/jetlag.js"></script>
+<script src="js/export.js"></script>
+<script src="js/app.js"></script>
+
+<script>
+  // Popola i select delle valute e gestisce le tab
+  document.addEventListener("DOMContentLoaded", () => {
+    const currencySelects = ["trip-currency", "expense-currency", "itinerary-currency"];
+    for (const id of currencySelects) {
+      const sel = document.getElementById(id);
+      sel.innerHTML = window.APP_CONFIG.SUPPORTED_CURRENCIES
+        .map(c => `<option value="${c}">${c}</option>`).join("");
+    }
+    document.getElementById("trip-currency").value = window.APP_CONFIG.DEFAULT_BASE_CURRENCY;
+
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".tab-panel").forEach(p => p.classList.add("hidden"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.tab).classList.remove("hidden");
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
