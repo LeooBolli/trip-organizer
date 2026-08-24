@@ -13,9 +13,11 @@ gestire: solo GitHub Pages (hosting statico) + Supabase (backend).
    [`supabase/schema.sql`](supabase/schema.sql) ed esegui (RUN).
    Questo crea le tabelle, le policy di sicurezza e il bucket di storage.
    Se avevi già eseguito questo script in una versione precedente dell'app,
-   non rieseguirlo per intero: nel file trovi dei blocchi marcati
-   **"MIGRAZIONE 1/2/3"** — esegui solo quelli che ti mancano ancora (le
-   istruzioni dentro ogni blocco dicono quando serve).
+   nessun problema: **puoi rieseguire tutto il file da cima a fondo in
+   qualsiasi momento**, quante volte vuoi — è scritto apposta per non dare
+   mai errori "esiste già" e non tocca i dati che hai già salvato. Se vedi
+   un errore tipo `Could not find the table 'public.xxx'` mentre usi l'app,
+   è segno che ti manca l'ultima versione dello schema: rieseguilo.
 3. Vai su **Authentication → Providers** e assicurati che **Email** sia
    abilitato. In **Authentication → URL Configuration**, imposta l'URL
    dell'app (lo saprai dopo aver attivato GitHub Pages, es.

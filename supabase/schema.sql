@@ -186,96 +186,88 @@ create table if not exists custom_options (
 );
 
 -- ------------------------------------------------------------
--- MIGRAZIONE 1: se avete già eseguito questo schema in precedenza
--- (prima che esistessero Itinerario/Valigia), e NON avete ancora
--- eseguito la Migrazione 1 in passato, eseguite questo blocco:
+-- MIGRAZIONE: questo blocco è sicuro da eseguire quante volte
+-- vuoi, in qualsiasi momento, indipendentemente da cosa avete già
+-- eseguito in passato (non genera mai errori "esiste già") - se
+-- non siete sicuri di cosa manca sul vostro progetto, eseguite
+-- semplicemente TUTTO il file da cima a fondo, questo blocco compreso.
 -- ------------------------------------------------------------
-alter table itinerary_items enable row level security;
-alter table packing_items enable row level security;
-
-create policy "authenticated full access itinerary_items" on itinerary_items
-  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-
-create policy "authenticated full access packing_items" on packing_items
-  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-
-alter publication supabase_realtime add table itinerary_items;
-alter publication supabase_realtime add table packing_items;
-
--- ------------------------------------------------------------
--- MIGRAZIONE 2: se avete già eseguito la Migrazione 1 qui sopra in
--- passato (quindi itinerary_items/packing_items esistono già) e vi
--- serve solo aggiungere i Modelli di valigia salvati, eseguite SOLO
--- questo blocco (la Migrazione 1 andrebbe in errore se rieseguita):
--- ------------------------------------------------------------
-alter table packing_templates enable row level security;
-
-create policy "authenticated full access packing_templates" on packing_templates
-  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-
-alter publication supabase_realtime add table packing_templates;
-
--- ------------------------------------------------------------
--- MIGRAZIONE 3: se avete già eseguito le Migrazioni 1 e 2 in
--- passato, eseguite SOLO questo blocco per avere: organizer della
--- valigia (Valigia/Zaino/ecc.), la sezione To Do, i menu a tendina
--- con voci personalizzate, e prenotazioni/tappe con tipo libero
--- (non più limitato a un elenco fisso):
--- ------------------------------------------------------------
-alter table packing_items add column if not exists organizer_id uuid references packing_organizers(id) on delete cascade;
-
 alter table bookings drop constraint if exists bookings_type_check;
 alter table itinerary_items drop constraint if exists itinerary_items_type_check;
 
-alter table packing_organizers enable row level security;
-alter table todos enable row level security;
-alter table custom_options enable row level security;
-
-create policy "authenticated full access packing_organizers" on packing_organizers
-  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-
-create policy "authenticated full access todos" on todos
-  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-
-create policy "authenticated full access custom_options" on custom_options
-  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-
-alter publication supabase_realtime add table packing_organizers;
-alter publication supabase_realtime add table todos;
-alter publication supabase_realtime add table custom_options;
-
--- ------------------------------------------------------------
--- ROW LEVEL SECURITY
--- App pensata per un piccolo gruppo chiuso (2 persone):
--- chiunque sia autenticato nel progetto puo' leggere/scrivere tutto.
--- L'accesso e' limitato a monte creando solo i vostri 2 account
--- e disabilitando le registrazioni pubbliche (vedi README).
--- ------------------------------------------------------------
 alter table trips enable row level security;
 alter table expenses enable row level security;
 alter table bookings enable row level security;
 alter table documents enable row level security;
+alter table itinerary_items enable row level security;
+alter table packing_items enable row level security;
+alter table packing_organizers enable row level security;
+alter table packing_templates enable row level security;
+alter table todos enable row level security;
+alter table custom_options enable row level security;
 
+drop policy if exists "authenticated full access trips" on trips;
 create policy "authenticated full access trips" on trips
   for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 
+drop policy if exists "authenticated full access expenses" on expenses;
 create policy "authenticated full access expenses" on expenses
   for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 
+drop policy if exists "authenticated full access bookings" on bookings;
 create policy "authenticated full access bookings" on bookings
   for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 
+drop policy if exists "authenticated full access documents" on documents;
 create policy "authenticated full access documents" on documents
+  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+
+drop policy if exists "authenticated full access itinerary_items" on itinerary_items;
+create policy "authenticated full access itinerary_items" on itinerary_items
+  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+
+drop policy if exists "authenticated full access packing_items" on packing_items;
+create policy "authenticated full access packing_items" on packing_items
+  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+
+drop policy if exists "authenticated full access packing_organizers" on packing_organizers;
+create policy "authenticated full access packing_organizers" on packing_organizers
+  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+
+drop policy if exists "authenticated full access packing_templates" on packing_templates;
+create policy "authenticated full access packing_templates" on packing_templates
+  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+
+drop policy if exists "authenticated full access todos" on todos;
+create policy "authenticated full access todos" on todos
+  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+
+drop policy if exists "authenticated full access custom_options" on custom_options;
+create policy "authenticated full access custom_options" on custom_options
   for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 
 -- ------------------------------------------------------------
 -- REALTIME
--- Abilita la pubblicazione realtime sulle tabelle principali
+-- Abilita la pubblicazione realtime su tutte le tabelle, saltando
+-- quelle già abilitate in precedenza (evita l'errore "relation is
+-- already member of publication")
 -- ------------------------------------------------------------
-alter publication supabase_realtime add table trips;
-alter publication supabase_realtime add table expenses;
-alter publication supabase_realtime add table bookings;
-alter publication supabase_realtime add table documents;
+do $$
+declare
+  t text;
+begin
+  foreach t in array array['trips','expenses','bookings','documents',
+    'itinerary_items','packing_items','packing_organizers',
+    'packing_templates','todos','custom_options']
+  loop
+    if not exists (
+      select 1 from pg_publication_tables
+      where pubname = 'supabase_realtime' and tablename = t
+    ) then
+      execute format('alter publication supabase_realtime add table %I', t);
+    end if;
+  end loop;
+end $$;
 
 -- ------------------------------------------------------------
 -- STORAGE BUCKET per i documenti di viaggio

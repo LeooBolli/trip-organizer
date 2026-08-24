@@ -53,6 +53,15 @@ const Packing = {
       else { orgSelect.value = restore; }
     });
 
+    document.querySelectorAll(".organizer-preset-btn").forEach(btn => {
+      btn.addEventListener("click", () => this.createOrganizer(btn.dataset.name));
+    });
+    document.getElementById("organizer-custom-btn").addEventListener("click", async () => {
+      const name = prompt("Nome del nuovo organizer:");
+      if (!name || !name.trim()) return;
+      await this.createOrganizer(name.trim());
+    });
+
     document.querySelectorAll("#packing-owner-switch .segmented-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         this.viewingOwner = btn.dataset.owner;
@@ -115,6 +124,17 @@ const Packing = {
   async createOrganizer(name, refresh = true) {
     const me = Auth.currentUser.id;
     const mine = this.organizers.filter(o => o.owner_id === me);
+
+    // Se hai già un organizer con questo nome, non ne crea uno doppio:
+    // seleziona semplicemente quello esistente.
+    const existing = mine.find(o => o.name.trim().toLowerCase() === name.trim().toLowerCase());
+    if (existing) {
+      const select = document.getElementById("packing-organizer");
+      select.value = existing.id;
+      select.dataset.prevValue = existing.id;
+      return existing.id;
+    }
+
     const position = mine.length > 0 ? Math.max(...mine.map(o => o.position)) + 1 : 0;
 
     const { data, error } = await supabaseClient.from("packing_organizers").insert({
@@ -123,6 +143,9 @@ const Packing = {
     if (error) { alert("Errore creazione organizer: " + error.message); return null; }
 
     if (refresh) await this.loadOrganizers();
+    const select = document.getElementById("packing-organizer");
+    select.value = data.id;
+    select.dataset.prevValue = data.id;
     return data.id;
   },
 
@@ -300,6 +323,8 @@ const Packing = {
     const isMe = this.viewingOwner === "me";
     document.getElementById("packing-add-card").classList.toggle("hidden", !isMe);
     document.getElementById("packing-save-template-card").classList.toggle("hidden", !isMe);
+    document.getElementById("packing-templates-card").classList.toggle("hidden", !isMe);
+    document.getElementById("packing-organizer-quickadd-card").classList.toggle("hidden", !isMe);
 
     const me = Auth.currentUser.id;
     const ownerId = isMe ? me : (this.organizers.find(o => o.owner_id !== me)?.owner_id);
