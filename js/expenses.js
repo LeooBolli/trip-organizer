@@ -9,6 +9,7 @@ const Expenses = {
 
   async openForTrip(trip) {
     this.trip = trip;
+    this.populatePaidBySelect();
     this.cancelEdit();
     document.getElementById("expense-currency").value = trip.base_currency;
     document.getElementById("expense-date").value = new Date().toISOString().slice(0, 10);
@@ -28,6 +29,30 @@ const Expenses = {
     document.getElementById("expense-currency").addEventListener("change", () => this.toggleExchangeRateField());
     document.getElementById("expense-split").addEventListener("change", () => this.toggleCustomSplit());
     document.getElementById("expense-form-cancel").addEventListener("click", () => this.cancelEdit());
+  },
+
+  // Popola "Chi ha pagato" con te + l'altra persona (se già scoperta,
+  // vedi Auth.discoverOtherUserId) - così puoi registrare una spesa
+  // pagata da chiunque dei due, indipendentemente da chi è loggato.
+  populatePaidBySelect() {
+    const select = document.getElementById("expense-paid-by");
+    if (!Auth.currentUser) return;
+    const current = select.value;
+    select.innerHTML = "";
+
+    const meOpt = document.createElement("option");
+    meOpt.value = Auth.currentUser.id;
+    meOpt.textContent = Auth.myName();
+    select.appendChild(meOpt);
+
+    if (Auth.otherUserId) {
+      const otherOpt = document.createElement("option");
+      otherOpt.value = Auth.otherUserId;
+      otherOpt.textContent = Auth.otherName();
+      select.appendChild(otherOpt);
+    }
+
+    select.value = [...select.options].some(o => o.value === current) ? current : Auth.currentUser.id;
   },
 
   toggleExchangeRateField() {
@@ -59,6 +84,15 @@ const Expenses = {
     document.getElementById("expense-currency").value = exp.currency;
     document.getElementById("expense-rate").value = exp.exchange_rate;
     document.getElementById("expense-date").value = exp.expense_date;
+    this.populatePaidBySelect();
+    const paidBySelect = document.getElementById("expense-paid-by");
+    if (![...paidBySelect.options].some(o => o.value === exp.paid_by)) {
+      const opt = document.createElement("option");
+      opt.value = exp.paid_by;
+      opt.textContent = Auth.otherUserLabel(exp.paid_by);
+      paidBySelect.appendChild(opt);
+    }
+    paidBySelect.value = exp.paid_by;
     document.getElementById("expense-split").value = exp.payer_share_percent === 50 ? "equal" : "custom";
     document.getElementById("expense-payer-share").value = exp.payer_share_percent;
     this.toggleExchangeRateField();
@@ -80,6 +114,7 @@ const Expenses = {
       document.getElementById("expense-currency").value = this.trip.base_currency;
       document.getElementById("expense-date").value = new Date().toISOString().slice(0, 10);
     }
+    this.populatePaidBySelect();
     this.toggleExchangeRateField();
     this.toggleCustomSplit();
   },
@@ -98,12 +133,13 @@ const Expenses = {
       ? parseFloat(document.getElementById("expense-payer-share").value)
       : 50;
     const expense_date = document.getElementById("expense-date").value;
+    const paid_by = document.getElementById("expense-paid-by").value || Auth.currentUser.id;
 
     if (!description || !amount || amount <= 0) return;
 
     if (this.editingId) {
       const { error } = await supabaseClient.from("expenses").update({
-        description, category, amount, currency, exchange_rate, payer_share_percent, expense_date
+        description, category, amount, currency, exchange_rate, payer_share_percent, expense_date, paid_by
       }).eq("id", this.editingId);
       if (error) { alert("Errore salvataggio modifiche: " + error.message); return; }
     } else {
@@ -111,7 +147,7 @@ const Expenses = {
         trip_id: this.trip.id,
         description, category, amount, currency, exchange_rate,
         payer_share_percent, expense_date,
-        paid_by: Auth.currentUser.id
+        paid_by
       });
       if (error) { alert("Errore salvataggio spesa: " + error.message); return; }
     }

@@ -5,6 +5,7 @@
 // ============================================================
 const Auth = {
   currentUser: null,
+  otherUserId: null,
   EMAIL_STORAGE_KEY: "trip-organizer-last-email",
 
   init(onReady) {
@@ -78,5 +79,35 @@ const Auth = {
       e => e.toLowerCase() !== this.currentUser.email.toLowerCase()
     );
     return (otherEmail && window.APP_CONFIG.USER_NAMES[otherEmail]) || "l'altra persona";
+  },
+
+  // L'app non può leggere auth.users direttamente (lato client), quindi
+  // per scoprire l'id dell'altra persona cerchiamo una riga qualsiasi,
+  // in una tabella qualsiasi, creata/pagata/posseduta da qualcun altro
+  // che non sia noi. Basta che l'altra persona abbia usato l'app almeno
+  // una volta in una qualsiasi sezione.
+  async discoverOtherUserId() {
+    if (this.otherUserId) return this.otherUserId;
+    const me = this.currentUser.id;
+    const sources = [
+      { table: "expenses", column: "paid_by" },
+      { table: "packing_items", column: "owner_id" },
+      { table: "trips", column: "created_by" },
+      { table: "bookings", column: "created_by" },
+      { table: "todos", column: "created_by" },
+      { table: "itinerary_items", column: "created_by" },
+      { table: "documents", column: "uploaded_by" },
+      { table: "packing_organizers", column: "owner_id" },
+      { table: "packing_templates", column: "owner_id" }
+    ];
+    for (const { table, column } of sources) {
+      const { data } = await supabaseClient
+        .from(table).select(column).neq(column, me).not(column, "is", null).limit(1);
+      if (data && data.length > 0) {
+        this.otherUserId = data[0][column];
+        return this.otherUserId;
+      }
+    }
+    return null;
   }
 };

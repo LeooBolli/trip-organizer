@@ -12,10 +12,12 @@ document.addEventListener("DOMContentLoaded", () => {
   ExportModule.init();
 
   Auth.init(() => {
-    // utente autenticato -> carica la lista viaggi e le voci
-    // personalizzate (richiedono entrambe una sessione valida per RLS)
+    // utente autenticato -> carica la lista viaggi, le voci
+    // personalizzate e prova a scoprire l'id dell'altra persona
+    // (richiedono tutte una sessione valida per RLS)
     Trips.load();
     CustomOptions.init();
+    Auth.discoverOtherUserId().then(() => Expenses.populatePaidBySelect());
   });
 
   if ("serviceWorker" in navigator) {
