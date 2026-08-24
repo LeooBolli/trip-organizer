@@ -3,15 +3,15 @@
 // (vedi README.md per la guida passo passo)
 // ============================================================
 window.APP_CONFIG = {
-  SUPABASE_URL: "https://YOUR-PROJECT.supabase.co",
-  SUPABASE_ANON_KEY: "YOUR-ANON-PUBLIC-KEY",
+  SUPABASE_URL: "https://jhfdfupbifobpznnriwu.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_A3p9QZtklZpzxo73q6iOlw_kjg91oWW",
 
   // Le uniche email autorizzate ad usare l'app.
   // Anche se qualcuno indovinasse l'URL, senza essere in questa lista
   // (ed essere stato invitato su Supabase Auth) non entra.
   ALLOWED_EMAILS: [
-    "tua-email@esempio.com",
-    "email-compagna@esempio.com"
+    "leonardobolli@gmail.com",
+    "biagettimariachiara@gmail.com"
   ],
 
   DEFAULT_BASE_CURRENCY: "EUR",
