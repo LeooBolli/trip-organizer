@@ -10,6 +10,7 @@ const Trips = {
     document.getElementById("new-trip-form").addEventListener("submit", (e) => this.create(e));
     document.getElementById("back-to-trips").addEventListener("click", () => this.showList());
     document.getElementById("archive-trip-btn").addEventListener("click", () => this.toggleArchive());
+    document.getElementById("delete-trip-btn").addEventListener("click", () => this.remove());
     document.getElementById("show-archived-toggle").addEventListener("change", () => this.render());
     document.getElementById("trip-emoji-edit").addEventListener("click", () => this.editEmoji());
 
@@ -111,6 +112,21 @@ const Trips = {
     const trip = this.activeTrip;
     const { error } = await supabaseClient.from("trips").update({ archived: !trip.archived }).eq("id", trip.id);
     if (error) { alert(error.message); return; }
+    this.showList();
+  },
+
+  async remove() {
+    const trip = this.activeTrip;
+    if (!trip) return;
+    const confirmName = prompt(`Per eliminare definitivamente "${trip.name}" (spese, prenotazioni, itinerario e valigie comprese), scrivi il nome del viaggio qui sotto:`);
+    if (confirmName === null) return;
+    if (confirmName.trim().toLowerCase() !== trip.name.trim().toLowerCase()) {
+      alert("Nome non corrispondente, eliminazione annullata.");
+      return;
+    }
+
+    const { error } = await supabaseClient.from("trips").delete().eq("id", trip.id);
+    if (error) { alert("Errore eliminazione viaggio: " + error.message); return; }
     this.showList();
   },
 
