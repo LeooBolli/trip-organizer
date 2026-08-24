@@ -239,18 +239,46 @@ const Packing = {
     if (error) { alert(error.message); await this.load(); }
   },
 
-  async editItem(item) {
+  async editName(item) {
     const newName = prompt("Nome oggetto:", item.name);
     if (newName === null) return;
     const name = newName.trim();
     if (!name) return;
-    const newQuantityStr = prompt("Quantità:", item.quantity);
-    if (newQuantityStr === null) return;
-    const quantity = parseInt(newQuantityStr, 10) || 1;
 
-    const { error } = await supabaseClient.from("packing_items").update({ name, quantity }).eq("id", item.id);
+    const { error } = await supabaseClient.from("packing_items").update({ name }).eq("id", item.id);
     if (error) { alert(error.message); return; }
     await this.load();
+  },
+
+  async editQuantity(item) {
+    const newQuantityStr = prompt("Quanti ne porti?", item.quantity);
+    if (newQuantityStr === null) return;
+    const quantity = Math.max(1, parseInt(newQuantityStr, 10) || 1);
+
+    item.quantity = quantity;
+    this.render();
+    const { error } = await supabaseClient.from("packing_items").update({ quantity }).eq("id", item.id);
+    if (error) { alert(error.message); await this.load(); }
+  },
+
+  async moveItem(item) {
+    const me = Auth.currentUser.id;
+    const otherOrganizers = this.organizers.filter(o => o.owner_id === me && o.id !== item.organizer_id);
+    if (otherOrganizers.length === 0) {
+      alert("Non hai altri organizer in cui spostarlo. Creane uno prima dal form qui sopra.");
+      return;
+    }
+    const list = otherOrganizers.map((o, i) => `${i + 1}. ${o.name}`).join("\n");
+    const choice = prompt(`Sposta "${item.name}" in quale organizer?\n${list}`, "1");
+    if (choice === null) return;
+    const idx = parseInt(choice, 10) - 1;
+    const target = otherOrganizers[idx];
+    if (!target) return;
+
+    item.organizer_id = target.id;
+    this.render();
+    const { error } = await supabaseClient.from("packing_items").update({ organizer_id: target.id }).eq("id", item.id);
+    if (error) { alert(error.message); await this.load(); }
   },
 
   async remove(id) {
@@ -390,16 +418,22 @@ const Packing = {
             row.innerHTML = `
               <label class="packing-check">
                 <input type="checkbox" ${item.packed ? "checked" : ""}>
-                <span>${escapeHtml(item.name)}${item.quantity > 1 ? ` <small>×${item.quantity}</small>` : ""}</span>
+                <span>${escapeHtml(item.name)}</span>
               </label>
               ${isMe ? `
-                <button class="icon-btn edit-packing-item" title="Modifica">✏️</button>
+                <button type="button" class="qty-badge" title="Cambia quantità">×${item.quantity}</button>
+                <button class="icon-btn move-packing-item" title="Sposta in un altro organizer">📦</button>
+                <button class="icon-btn edit-packing-item" title="Rinomina">✏️</button>
                 <button class="icon-btn delete-packing-item" title="Elimina">✕</button>
-              ` : ""}
+              ` : `<span class="qty-badge qty-badge-readonly">×${item.quantity}</span>`}
             `;
             row.querySelector("input").addEventListener("change", () => this.togglePacked(item));
+            const qtyBtn = row.querySelector(".qty-badge:not(.qty-badge-readonly)");
+            if (qtyBtn) qtyBtn.addEventListener("click", () => this.editQuantity(item));
+            const moveBtn = row.querySelector(".move-packing-item");
+            if (moveBtn) moveBtn.addEventListener("click", () => this.moveItem(item));
             const editBtn = row.querySelector(".edit-packing-item");
-            if (editBtn) editBtn.addEventListener("click", () => this.editItem(item));
+            if (editBtn) editBtn.addEventListener("click", () => this.editName(item));
             const delBtn = row.querySelector(".delete-packing-item");
             if (delBtn) delBtn.addEventListener("click", () => this.remove(item.id));
             card.appendChild(row);
@@ -422,6 +456,45 @@ const PACKING_CATEGORY_LABELS = {
 };
 
 const PACKING_TEMPLATES = {
+  essenziali: [
+    { category: "abbigliamento", name: "Magliette/T-shirt", quantity: 6 },
+    { category: "abbigliamento", name: "Biancheria intima", quantity: 7 },
+    { category: "abbigliamento", name: "Calzini", quantity: 7 },
+    { category: "abbigliamento", name: "Pantaloni/jeans", quantity: 2 },
+    { category: "abbigliamento", name: "Pantaloncini/gonna", quantity: 2 },
+    { category: "abbigliamento", name: "Felpa o maglione leggero", quantity: 1 },
+    { category: "abbigliamento", name: "Giacca leggera/antivento", quantity: 1 },
+    { category: "abbigliamento", name: "Pigiama", quantity: 1 },
+    { category: "abbigliamento", name: "Scarpe comode da camminata", quantity: 1 },
+    { category: "abbigliamento", name: "Ciabatte/infradito", quantity: 1 },
+    { category: "abbigliamento", name: "Costume da bagno", quantity: 1 },
+    { category: "abbigliamento", name: "Cintura", quantity: 1 },
+    { category: "abbigliamento", name: "Cappello/berretto", quantity: 1 },
+    { category: "igiene", name: "Spazzolino e dentifricio", quantity: 1 },
+    { category: "igiene", name: "Shampoo/bagnoschiuma formato viaggio", quantity: 1 },
+    { category: "igiene", name: "Deodorante", quantity: 1 },
+    { category: "igiene", name: "Rasoio", quantity: 1 },
+    { category: "igiene", name: "Spazzola/pettine", quantity: 1 },
+    { category: "igiene", name: "Tagliaunghie", quantity: 1 },
+    { category: "salute", name: "Farmaci personali", quantity: 1 },
+    { category: "salute", name: "Kit primo soccorso (cerotti, disinfettante)", quantity: 1 },
+    { category: "salute", name: "Antidolorifico da banco", quantity: 1 },
+    { category: "salute", name: "Crema solare", quantity: 1 },
+    { category: "elettronica", name: "Caricabatterie telefono", quantity: 1 },
+    { category: "elettronica", name: "Powerbank", quantity: 1 },
+    { category: "elettronica", name: "Adattatore universale", quantity: 1 },
+    { category: "elettronica", name: "Cuffie/auricolari", quantity: 1 },
+    { category: "documenti", name: "Documento d'identità/passaporto", quantity: 1 },
+    { category: "documenti", name: "Biglietti/carte d'imbarco", quantity: 1 },
+    { category: "documenti", name: "Carta di credito/contanti", quantity: 1 },
+    { category: "documenti", name: "Assicurazione di viaggio", quantity: 1 },
+    { category: "documenti", name: "Fotocopia/foto documenti (di scorta)", quantity: 1 },
+    { category: "altro", name: "Occhiali da sole", quantity: 1 },
+    { category: "altro", name: "Zainetto/borsa da giorno", quantity: 1 },
+    { category: "altro", name: "Bottiglia d'acqua riutilizzabile", quantity: 1 },
+    { category: "altro", name: "Libro/e-reader per il viaggio", quantity: 1 },
+    { category: "altro", name: "Snack per il viaggio", quantity: 2 }
+  ],
   sud_est_asiatico: [
     { category: "abbigliamento", name: "Abbigliamento leggero e traspirante", quantity: 5 },
     { category: "abbigliamento", name: "Costume da bagno", quantity: 2 },

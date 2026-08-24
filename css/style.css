@@ -709,6 +709,26 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
 .packing-check input { width: auto; accent-color: var(--accent); }
 .packing-check small { color: var(--text-muted); }
 
+.qty-badge {
+  flex-shrink: 0;
+  border: none;
+  background: var(--accent-light);
+  color: var(--accent-dark);
+  font-weight: 800;
+  font-size: 0.76rem;
+  padding: 4px 9px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.qty-badge:hover { background: var(--accent); color: var(--accent-contrast); }
+.qty-badge-readonly {
+  cursor: default;
+  background: var(--surface-alt);
+  color: var(--text-soft);
+}
+.qty-badge-readonly:hover { background: var(--surface-alt); color: var(--text-soft); }
+
 /* --- Jet lag --- */
 .tips-list {
   margin: 0;
