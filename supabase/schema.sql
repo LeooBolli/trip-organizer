@@ -18,9 +18,16 @@ create table if not exists trips (
   base_currency text not null default 'EUR',
   emoji text default '🧳',
   archived boolean not null default false,
+  -- Cambi fissi impostati per il viaggio: { "USD": 0.92, "GBP": 1.17, ... }
+  -- valuta -> quanto vale 1 unità di quella valuta nella valuta base del viaggio
+  exchange_rates jsonb not null default '{}'::jsonb,
   created_by uuid references auth.users(id),
   created_at timestamptz not null default now()
 );
+
+-- Se avete già eseguito questo schema in precedenza, eseguite anche questo
+-- per aggiungere la colonna dei cambi fissi senza perdere i dati:
+alter table trips add column if not exists exchange_rates jsonb not null default '{}'::jsonb;
 
 -- ------------------------------------------------------------
 -- EXPENSES

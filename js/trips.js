@@ -16,6 +16,7 @@ const Trips = {
     document.getElementById("trip-emoji-edit").addEventListener("click", () => this.editEmoji());
     document.getElementById("trips-carousel-prev").addEventListener("click", () => this.scrollCarouselBy(-1));
     document.getElementById("trips-carousel-next").addEventListener("click", () => this.scrollCarouselBy(1));
+    document.getElementById("currency-rate-add-btn").addEventListener("click", () => this.addCurrencyRate());
 
     supabaseClient
       .channel("trips-changes")
@@ -152,6 +153,7 @@ const Trips = {
     document.getElementById("edit-trip-start").value = trip.start_date || "";
     document.getElementById("edit-trip-end").value = trip.end_date || "";
     document.getElementById("edit-trip-currency").value = trip.base_currency;
+    this.renderCurrencyRates();
     await Expenses.openForTrip(trip);
     await Bookings.openForTrip(trip);
     await Itinerary.openForTrip(trip);
@@ -226,6 +228,60 @@ const Trips = {
 
     const { error } = await supabaseClient.from("trips").update({ emoji }).eq("id", trip.id);
     if (error) alert(error.message);
+  },
+
+  renderCurrencyRates() {
+    const trip = this.activeTrip;
+    if (!trip) return;
+    const container = document.getElementById("currency-rates-list");
+    const rates = trip.exchange_rates || {};
+    const entries = Object.entries(rates);
+    container.innerHTML = "";
+
+    if (entries.length === 0) {
+      container.innerHTML = `<p class="empty-state">Nessun cambio fisso impostato: durante l'inserimento della spesa dovrai indicarlo a mano.</p>`;
+    } else {
+      for (const [code, rate] of entries) {
+        const row = document.createElement("div");
+        row.className = "currency-rate-row";
+        row.innerHTML = `
+          <strong>${escapeHtml(code)}</strong>
+          <span>1 ${escapeHtml(code)} = ${escapeHtml(String(rate))} ${escapeHtml(trip.base_currency)}</span>
+          <button type="button" class="icon-btn remove-currency-rate" title="Rimuovi">✕</button>
+        `;
+        row.querySelector(".remove-currency-rate").addEventListener("click", () => this.removeCurrencyRate(code));
+        container.appendChild(row);
+      }
+    }
+  },
+
+  async addCurrencyRate() {
+    const trip = this.activeTrip;
+    if (!trip) return;
+    const code = document.getElementById("currency-rate-code").value;
+    const value = parseFloat(document.getElementById("currency-rate-value").value);
+    if (!code || !value || value <= 0) return;
+    if (code === trip.base_currency) { alert("Non serve un cambio per la valuta base del viaggio."); return; }
+
+    const rates = { ...(trip.exchange_rates || {}), [code]: value };
+    const { error } = await supabaseClient.from("trips").update({ exchange_rates: rates }).eq("id", trip.id);
+    if (error) { alert("Errore salvataggio cambio: " + error.message); return; }
+
+    trip.exchange_rates = rates;
+    document.getElementById("currency-rate-value").value = "";
+    this.renderCurrencyRates();
+  },
+
+  async removeCurrencyRate(code) {
+    const trip = this.activeTrip;
+    if (!trip) return;
+    const rates = { ...(trip.exchange_rates || {}) };
+    delete rates[code];
+    const { error } = await supabaseClient.from("trips").update({ exchange_rates: rates }).eq("id", trip.id);
+    if (error) { alert(error.message); return; }
+
+    trip.exchange_rates = rates;
+    this.renderCurrencyRates();
   }
 };
 

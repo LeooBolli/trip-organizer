@@ -149,6 +149,7 @@
             <div id="exchange-rate-wrapper" class="hidden">
               <label>Cambio verso la valuta base del viaggio</label>
               <input type="number" id="expense-rate" step="0.0001" min="0" value="1">
+              <small id="expense-amount-preview" class="form-hint"></small>
             </div>
 
             <label>Data</label>
@@ -513,6 +514,23 @@
         </div>
 
         <div class="card">
+          <h3>Cambi valuta fissi</h3>
+          <p class="card-text">Imposta un cambio fisso per ogni valuta che usi in questo viaggio: quando aggiungi una spesa in quella valuta, il cambio verrà precompilato da solo (resta comunque modificabile per la singola spesa).</p>
+          <div id="currency-rates-list"></div>
+          <div class="currency-rate-add">
+            <div>
+              <label>Valuta</label>
+              <select id="currency-rate-code"></select>
+            </div>
+            <div>
+              <label>Cambio (1 unità = ? valuta base)</label>
+              <input type="number" id="currency-rate-value" step="0.0001" min="0" placeholder="Es. 0.92">
+            </div>
+            <button type="button" id="currency-rate-add-btn" class="secondary-btn">➕ Aggiungi</button>
+          </div>
+        </div>
+
+        <div class="card">
           <h3>Spese per categoria</h3>
           <div id="category-breakdown"></div>
         </div>
@@ -581,7 +599,7 @@
 <script>
   // Popola i select delle valute e gestisce le tab
   document.addEventListener("DOMContentLoaded", () => {
-    const currencySelects = ["trip-currency", "expense-currency", "itinerary-currency", "edit-trip-currency"];
+    const currencySelects = ["trip-currency", "expense-currency", "itinerary-currency", "edit-trip-currency", "currency-rate-code"];
     for (const id of currencySelects) {
       const sel = document.getElementById(id);
       sel.innerHTML = window.APP_CONFIG.SUPPORTED_CURRENCIES

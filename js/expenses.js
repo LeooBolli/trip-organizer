@@ -28,7 +28,12 @@ const Expenses = {
 
   init() {
     document.getElementById("new-expense-form").addEventListener("submit", (e) => this.submit(e));
-    document.getElementById("expense-currency").addEventListener("change", () => this.toggleExchangeRateField());
+    document.getElementById("expense-currency").addEventListener("change", () => {
+      this.toggleExchangeRateField();
+      this.prefillExchangeRate();
+    });
+    document.getElementById("expense-amount").addEventListener("input", () => this.updateAmountPreview());
+    document.getElementById("expense-rate").addEventListener("input", () => this.updateAmountPreview());
     document.getElementById("expense-split").addEventListener("change", () => this.toggleCustomSplit());
     document.getElementById("expense-form-cancel").addEventListener("click", () => this.cancelEdit());
 
@@ -77,6 +82,31 @@ const Expenses = {
   toggleExchangeRateField() {
     const isBase = document.getElementById("expense-currency").value === this.trip.base_currency;
     document.getElementById("exchange-rate-wrapper").classList.toggle("hidden", isBase);
+    this.updateAmountPreview();
+  },
+
+  // Precompila il cambio con quello fisso impostato nelle impostazioni del
+  // viaggio (se presente per quella valuta), ma resta modificabile a mano.
+  // Scatta solo quando l'utente cambia valuta di persona, mai quando il
+  // campo viene precompilato in automatico (es. apertura di una modifica).
+  prefillExchangeRate() {
+    const currency = document.getElementById("expense-currency").value;
+    if (currency === this.trip.base_currency) return;
+    const fixedRate = this.trip.exchange_rates && this.trip.exchange_rates[currency];
+    if (fixedRate) document.getElementById("expense-rate").value = fixedRate;
+    this.updateAmountPreview();
+  },
+
+  updateAmountPreview() {
+    const previewEl = document.getElementById("expense-amount-preview");
+    const currency = document.getElementById("expense-currency").value;
+    const amount = parseFloat(document.getElementById("expense-amount").value);
+    const rate = parseFloat(document.getElementById("expense-rate").value);
+    if (!this.trip || currency === this.trip.base_currency || !amount || !rate) {
+      previewEl.textContent = "";
+      return;
+    }
+    previewEl.textContent = `≈ ${formatMoney(amount * rate, this.trip.base_currency)}`;
   },
 
   toggleCustomSplit() {
