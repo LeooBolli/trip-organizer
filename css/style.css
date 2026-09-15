@@ -1,5 +1,5 @@
 /* ============================================================
-   Trip Organizer — stile "travel app": sfondo salvia tenue,
+   PDTravel — stile "travel app": sfondo salvia tenue,
    card scure protagoniste, accento arancione, tipografia
    Plus Jakarta Sans con corsivo per i titoli.
    ============================================================ */
@@ -578,6 +578,11 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
 
 .settings-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 .settings-actions .secondary-btn { width: auto; padding: 8px 14px; font-size: 0.82rem; }
+
+.filter-chip.active { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
+
+.filter-date-row { display: flex; gap: 12px; margin-top: 10px; }
+.filter-date-row > div { flex: 1; }
 
 .custom-template-chip {
   display: inline-flex;

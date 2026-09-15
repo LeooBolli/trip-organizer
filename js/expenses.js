@@ -6,11 +6,13 @@ const Expenses = {
   list: [],
   channel: null,
   editingId: null,
+  filters: { categories: new Set(), payers: new Set(), dateFrom: "", dateTo: "" },
 
   async openForTrip(trip) {
     this.trip = trip;
     this.populatePaidBySelect();
     this.cancelEdit();
+    this.clearFilters(false);
     document.getElementById("expense-currency").value = trip.base_currency;
     document.getElementById("expense-date").value = new Date().toISOString().slice(0, 10);
     this.toggleExchangeRateField();
@@ -29,6 +31,23 @@ const Expenses = {
     document.getElementById("expense-currency").addEventListener("change", () => this.toggleExchangeRateField());
     document.getElementById("expense-split").addEventListener("change", () => this.toggleCustomSplit());
     document.getElementById("expense-form-cancel").addEventListener("click", () => this.cancelEdit());
+
+    document.getElementById("expense-filter-date-from").addEventListener("change", (e) => {
+      this.filters.dateFrom = e.target.value;
+      this.renderList();
+    });
+    document.getElementById("expense-filter-date-to").addEventListener("change", (e) => {
+      this.filters.dateTo = e.target.value;
+      this.renderList();
+    });
+    document.getElementById("expense-filter-clear").addEventListener("click", () => this.clearFilters());
+  },
+
+  clearFilters(rerender = true) {
+    this.filters = { categories: new Set(), payers: new Set(), dateFrom: "", dateTo: "" };
+    document.getElementById("expense-filter-date-from").value = "";
+    document.getElementById("expense-filter-date-to").value = "";
+    if (rerender) this.render();
   },
 
   // Popola "Chi ha pagato" con te + l'altra persona (se già scoperta,
@@ -70,7 +89,8 @@ const Expenses = {
       .from("expenses")
       .select("*")
       .eq("trip_id", this.trip.id)
-      .order("expense_date", { ascending: false });
+      .order("expense_date", { ascending: false })
+      .order("created_at", { ascending: false });
     if (error) { console.error(error); return; }
     this.list = data;
     this.render();
@@ -165,21 +185,80 @@ const Expenses = {
   },
 
   render() {
+    this.renderFilterChips();
     this.renderList();
     this.renderBalance();
     this.renderCategoryBreakdown();
   },
 
+  // Chip di categoria (solo quelle presenti tra le spese del viaggio) e
+  // chip "chi ha pagato" (te + l'altra persona), entrambe multi-selezionabili.
+  renderFilterChips() {
+    const catContainer = document.getElementById("expense-filter-categories");
+    const presentCategories = [...new Set(this.list.map(e => e.category))];
+    const prevCatSelection = new Set([...this.filters.categories].filter(c => presentCategories.includes(c)));
+    this.filters.categories = prevCatSelection;
+    catContainer.innerHTML = "";
+    for (const cat of presentCategories) {
+      const label = CATEGORY_LABELS[cat] || (window.CustomOptions && CustomOptions.getLabel("expense_category", cat)) || cat;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "secondary-btn filter-chip" + (this.filters.categories.has(cat) ? " active" : "");
+      btn.textContent = label;
+      btn.addEventListener("click", () => {
+        if (this.filters.categories.has(cat)) this.filters.categories.delete(cat);
+        else this.filters.categories.add(cat);
+        this.renderFilterChips();
+        this.renderList();
+      });
+      catContainer.appendChild(btn);
+    }
+
+    const payerContainer = document.getElementById("expense-filter-payers");
+    const payers = [];
+    if (Auth.currentUser) payers.push({ id: Auth.currentUser.id, label: Auth.myName() });
+    if (Auth.otherUserId) payers.push({ id: Auth.otherUserId, label: Auth.otherName() });
+    payerContainer.innerHTML = "";
+    for (const payer of payers) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "secondary-btn filter-chip" + (this.filters.payers.has(payer.id) ? " active" : "");
+      btn.textContent = payer.label;
+      btn.addEventListener("click", () => {
+        if (this.filters.payers.has(payer.id)) this.filters.payers.delete(payer.id);
+        else this.filters.payers.add(payer.id);
+        this.renderFilterChips();
+        this.renderList();
+      });
+      payerContainer.appendChild(btn);
+    }
+  },
+
+  getFilteredList() {
+    return this.list.filter(exp => {
+      if (this.filters.categories.size > 0 && !this.filters.categories.has(exp.category)) return false;
+      if (this.filters.payers.size > 0 && !this.filters.payers.has(exp.paid_by)) return false;
+      if (this.filters.dateFrom && exp.expense_date < this.filters.dateFrom) return false;
+      if (this.filters.dateTo && exp.expense_date > this.filters.dateTo) return false;
+      return true;
+    });
+  },
+
   renderList() {
     const container = document.getElementById("expenses-list");
+    const filtered = this.getFilteredList();
     container.innerHTML = "";
 
-    if (this.list.length === 0) {
-      container.innerHTML = `<p class="empty-state">Nessuna spesa registrata.</p>`;
+    const countEl = document.getElementById("expense-filter-count");
+    const hasActiveFilters = this.filters.categories.size > 0 || this.filters.payers.size > 0 || this.filters.dateFrom || this.filters.dateTo;
+    countEl.textContent = hasActiveFilters ? `${filtered.length} di ${this.list.length} spese` : "";
+
+    if (filtered.length === 0) {
+      container.innerHTML = `<p class="empty-state">${this.list.length === 0 ? "Nessuna spesa registrata." : "Nessuna spesa corrisponde ai filtri."}</p>`;
       return;
     }
 
-    for (const exp of this.list) {
+    for (const exp of filtered) {
       const row = document.createElement("div");
       row.className = "expense-row";
       const baseAmount = exp.amount * exp.exchange_rate;

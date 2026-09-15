@@ -1,5 +1,5 @@
 -- ============================================================
--- Trip Organizer - Supabase schema
+-- PDTravel - Supabase schema
 -- Eseguire questo script nel SQL Editor del progetto Supabase
 -- ============================================================
 

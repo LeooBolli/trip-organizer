@@ -20,7 +20,7 @@ const ExportModule = {
       Valuta: exp.currency,
       "Cambio applicato": exp.exchange_rate,
       [`Importo in ${trip.base_currency}`]: +(exp.amount * exp.exchange_rate).toFixed(2),
-      "Pagato da": Auth.otherUserLabel(exp.paid_by) === "Tu" ? Auth.currentUser.email : "Compagno/a",
+      "Pagato da": Auth.otherUserLabel(exp.paid_by),
       "% a carico del pagante": exp.payer_share_percent
     }));
     const expenseSheet = XLSX.utils.json_to_sheet(expenseRows);

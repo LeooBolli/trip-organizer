@@ -1,6 +1,6 @@
 {
-  "name": "Trip Organizer",
-  "short_name": "Trip Organizer",
+  "name": "PDTravel",
+  "short_name": "PDTravel",
   "description": "Organizzatore di viaggi condiviso: spese, prenotazioni e documenti in tempo reale.",
   "start_url": "./index.html",
   "scope": "./",

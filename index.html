@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Trip Organizer</title>
+<title>PDTravel</title>
 <meta name="theme-color" content="#EE8F45">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Trip Organizer">
+<meta name="apple-mobile-web-app-title" content="PDTravel">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700&display=swap">
@@ -23,7 +23,7 @@
 <!-- LOGIN -->
 <section id="view-login">
   <div class="login-card">
-    <h1>🧳 Trip Organizer</h1>
+    <h1>🧳 PDTravel</h1>
     <p>Accedi per gestire i viaggi insieme.</p>
     <form id="login-form">
       <input type="email" id="login-email" name="email" autocomplete="username" placeholder="La tua email" required>
@@ -37,7 +37,7 @@
 <!-- APP -->
 <div id="app-shell" class="hidden">
   <header class="top-bar">
-    <h1 id="header-title">🧳 Trip Organizer</h1>
+    <h1 id="header-title">🧳 PDTravel</h1>
     <div style="display:flex;align-items:center;gap:12px;">
       <label class="theme-switch">🌙 <input type="checkbox" id="theme-toggle"></label>
       <button id="logout-btn" class="icon-btn" title="Esci">⏻</button>
@@ -173,8 +173,35 @@
           </form>
         </div>
 
+        <div class="card" id="expense-filters-card">
+          <div class="card-header">
+            <h3>Filtra spese</h3>
+            <button type="button" class="icon-btn" id="expense-filter-clear" title="Cancella filtri">✕</button>
+          </div>
+
+          <label>Categoria</label>
+          <div class="settings-actions" id="expense-filter-categories"></div>
+
+          <label>Chi ha pagato</label>
+          <div class="settings-actions" id="expense-filter-payers"></div>
+
+          <div class="filter-date-row">
+            <div>
+              <label>Dal</label>
+              <input type="date" id="expense-filter-date-from">
+            </div>
+            <div>
+              <label>Al</label>
+              <input type="date" id="expense-filter-date-to">
+            </div>
+          </div>
+        </div>
+
         <div class="card">
-          <h3>Storico spese</h3>
+          <div class="card-header">
+            <h3>Storico spese</h3>
+            <span id="expense-filter-count" class="card-sub"></span>
+          </div>
           <div id="expenses-list"></div>
         </div>
       </div>
@@ -389,6 +416,10 @@
 
             <button type="submit">Aggiungi</button>
           </form>
+        </div>
+
+        <div style="margin:4px 4px 12px;">
+          <input type="search" id="packing-search" placeholder="🔍 Cerca un oggetto...">
         </div>
 
         <div id="packing-title-row" class="card-header" style="margin:4px 4px 12px;">

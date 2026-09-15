@@ -13,11 +13,14 @@ const Packing = {
   templatesChannel: null,
   viewingOwner: "me", // "me" | "other"
   migrationDone: false,
+  searchQuery: "",
 
   async openForTrip(trip) {
     this.trip = trip;
     this.viewingOwner = "me";
     this.migrationDone = false;
+    this.searchQuery = "";
+    document.getElementById("packing-search").value = "";
     document.querySelectorAll("#packing-owner-switch .segmented-btn").forEach(b => b.classList.toggle("active", b.dataset.owner === "me"));
     document.getElementById("packing-other-label").textContent = Auth.otherName();
 
@@ -40,6 +43,10 @@ const Packing = {
   init() {
     document.getElementById("new-packing-form").addEventListener("submit", (e) => this.create(e));
     document.getElementById("save-packing-template-btn").addEventListener("click", () => this.saveAsTemplate());
+    document.getElementById("packing-search").addEventListener("input", (e) => {
+      this.searchQuery = e.target.value;
+      this.render();
+    });
 
     const orgSelect = document.getElementById("packing-organizer");
     orgSelect.dataset.prevValue = "";
@@ -347,6 +354,16 @@ const Packing = {
     }
   },
 
+  matchesSearch(item) {
+    const query = this.normalizeSearch(this.searchQuery);
+    if (!query) return true;
+    return this.normalizeSearch(item.name).includes(query);
+  },
+
+  normalizeSearch(str) {
+    return (str || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+  },
+
   render() {
     const isMe = this.viewingOwner === "me";
     document.getElementById("packing-add-card").classList.toggle("hidden", !isMe);
@@ -358,6 +375,7 @@ const Packing = {
     const ownerId = isMe ? me : (this.organizers.find(o => o.owner_id !== me)?.owner_id);
     const myOrganizers = this.organizers.filter(o => o.owner_id === ownerId).sort((a, b) => a.position - b.position);
     const myItems = ownerId ? this.list.filter(i => i.owner_id === ownerId) : [];
+    const searching = this.searchQuery.trim().length > 0;
 
     document.getElementById("packing-list-title").textContent = isMe ? "La mia valigia" : `Valigia di ${Auth.otherName()}`;
     const packedCount = myItems.filter(i => i.packed).length;
@@ -371,8 +389,17 @@ const Packing = {
       return;
     }
 
-    for (const org of myOrganizers) {
-      const orgItems = myItems.filter(i => i.organizer_id === org.id);
+    const visibleOrganizers = searching
+      ? myOrganizers.filter(org => myItems.some(i => i.organizer_id === org.id && this.matchesSearch(i)))
+      : myOrganizers;
+
+    if (searching && visibleOrganizers.length === 0) {
+      container.innerHTML = `<p class="empty-state">Nessun oggetto trovato per "${escapeHtml(this.searchQuery.trim())}".</p>`;
+      return;
+    }
+
+    for (const org of visibleOrganizers) {
+      const orgItems = myItems.filter(i => i.organizer_id === org.id && this.matchesSearch(i));
       const orgPacked = orgItems.filter(i => i.packed).length;
 
       const card = document.createElement("div");

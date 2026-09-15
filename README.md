@@ -1,4 +1,4 @@
-# Trip Organizer
+# PDTravel
 
 App web (PWA) per organizzare viaggi in due: spese condivise, prenotazioni
 (voli/hotel/auto) con documenti allegati, itinerario giorno per giorno,
@@ -21,7 +21,7 @@ gestire: solo GitHub Pages (hosting statico) + Supabase (backend).
 3. Vai su **Authentication → Providers** e assicurati che **Email** sia
    abilitato. In **Authentication → URL Configuration**, imposta l'URL
    dell'app (lo saprai dopo aver attivato GitHub Pages, es.
-   `https://tuo-utente.github.io/trip-organizer/`) come **Site URL** e in
+   `https://tuo-utente.github.io/pdtravel/`) come **Site URL** e in
    **Redirect URLs**.
 4. Vai su **Authentication → Providers → Email** e **disabilita "Allow new
    users to sign up"** dopo aver creato i vostri due account (vedi punto 6),
@@ -50,12 +50,12 @@ account che create voi, con "Allow new users to sign up" disabilitato.
 ## 3. Metti il codice su GitHub
 
 ```bash
-cd trip-organizer
+cd PDTravel
 git init
 git add .
-git commit -m "Prima versione Trip Organizer"
+git commit -m "Prima versione PDTravel"
 git branch -M main
-git remote add origin https://github.com/TUO-UTENTE/trip-organizer.git
+git remote add origin https://github.com/TUO-UTENTE/pdtravel.git
 git push -u origin main
 ```
 
@@ -69,7 +69,7 @@ disabilitata).
 1. Sul repository GitHub → **Settings → Pages**.
 2. **Source**: Deploy from a branch → branch `main`, cartella `/ (root)`.
 3. Salva. Dopo un minuto l'app sarà su
-   `https://TUO-UTENTE.github.io/trip-organizer/`.
+   `https://TUO-UTENTE.github.io/pdtravel/`.
 4. Torna su Supabase (punto 1.3) e aggiorna Site URL / Redirect URLs con
    questo indirizzo definitivo.
 
