@@ -107,6 +107,8 @@ js/jetlag.js            consigli e piano di adattamento jet lag (fuso orario rea
 js/todos.js             To Do per viaggio
 js/customOptions.js     voci personalizzate nei menu a tendina
 js/export.js           export Excel
+js/preferences.js      impostazioni personali (riquadri/preferiti della Dashboard)
+js/dashboard.js        Dashboard del viaggio (bilancio, oggi, budget, grafico spese)
 js/app.js              avvio app
 manifest.json / sw.js   PWA (icona home, offline app-shell)
 supabase/schema.sql     schema database da eseguire su Supabase

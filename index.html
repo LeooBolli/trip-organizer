@@ -40,6 +40,7 @@
     <h1 id="header-title">🧳 PDTravel</h1>
     <div style="display:flex;align-items:center;gap:12px;">
       <label class="theme-switch">🌙 <input type="checkbox" id="theme-toggle"></label>
+      <button id="settings-btn" class="icon-btn" title="Impostazioni">⚙️</button>
       <button id="logout-btn" class="icon-btn" title="Esci">⏻</button>
     </div>
   </header>
@@ -97,7 +98,8 @@
       </div>
 
       <div class="tabs">
-        <button class="tab-btn active" data-tab="tab-expenses">💰 Spese</button>
+        <button class="tab-btn active" data-tab="tab-dashboard">🏠 Dashboard</button>
+        <button class="tab-btn" data-tab="tab-expenses">💰 Spese</button>
         <button class="tab-btn" data-tab="tab-bookings">📋 Prenotazioni</button>
         <button class="tab-btn" data-tab="tab-itinerary">🗓️ Itinerario</button>
         <button class="tab-btn" data-tab="tab-packing">🧳 Valigia</button>
@@ -106,8 +108,14 @@
         <button class="tab-btn" data-tab="tab-summary">📊 Riepilogo</button>
       </div>
 
+      <!-- TAB: DASHBOARD -->
+      <div id="tab-dashboard" class="tab-panel">
+        <div id="dashboard-content"></div>
+        <button type="button" id="dashboard-fab" class="dash-fab" title="Aggiungi una spesa">+</button>
+      </div>
+
       <!-- TAB: EXPENSES -->
-      <div id="tab-expenses" class="tab-panel">
+      <div id="tab-expenses" class="tab-panel hidden">
         <div class="card balance-card">
           <div id="balance-summary"></div>
         </div>
@@ -476,6 +484,8 @@
           <h3>Aggiungi promemoria</h3>
           <form id="new-todo-form">
             <input type="text" id="todo-title" placeholder="Es. Controllare il passaporto" required>
+            <label>Scadenza (facoltativa, i To Do di oggi compaiono nella Dashboard)</label>
+            <input type="date" id="todo-due">
             <button type="submit">Aggiungi</button>
           </form>
         </div>
@@ -552,6 +562,24 @@
         </div>
       </div>
     </section>
+
+    <!-- VIEW: SETTINGS -->
+    <section id="view-settings" class="view hidden">
+      <button type="button" id="settings-back" class="secondary-btn" style="width:auto;margin-bottom:14px;">← Indietro</button>
+
+      <div class="card">
+        <h3>Riquadri della Dashboard</h3>
+        <p class="card-text">Scegli quali riquadri vedere nella Dashboard di ogni viaggio. La scelta è personale e ti segue su tutti i tuoi dispositivi.</p>
+        <div id="settings-widgets"></div>
+      </div>
+
+      <div class="card">
+        <h3>Sezioni preferite</h3>
+        <p class="card-text">Le sezioni che scegli compaiono come riquadri riassuntivi in Dashboard: un tocco e ci vai direttamente.</p>
+        <div id="settings-favorites"></div>
+      </div>
+      <p id="settings-status" class="card-sub" style="text-align:center;"></p>
+    </section>
   </main>
 </div>
 
@@ -594,6 +622,8 @@
 <script src="js/jetlag.js"></script>
 <script src="js/todos.js"></script>
 <script src="js/export.js"></script>
+<script src="js/preferences.js"></script>
+<script src="js/dashboard.js"></script>
 <script src="js/app.js"></script>
 
 <script>
@@ -607,13 +637,16 @@
     }
     document.getElementById("trip-currency").value = window.APP_CONFIG.DEFAULT_BASE_CURRENCY;
 
+    window.switchTab = (tabId) => {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tabId));
+      document.querySelectorAll(".tab-panel").forEach(p => p.classList.add("hidden"));
+      document.getElementById(tabId).classList.remove("hidden");
+      const activeBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+      if (activeBtn) activeBtn.scrollIntoView({ inline: "center", block: "nearest" });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
     document.querySelectorAll(".tab-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-        document.querySelectorAll(".tab-panel").forEach(p => p.classList.add("hidden"));
-        btn.classList.add("active");
-        document.getElementById(btn.dataset.tab).classList.remove("hidden");
-      });
+      btn.addEventListener("click", () => window.switchTab(btn.dataset.tab));
     });
   });
 </script>

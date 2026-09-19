@@ -39,11 +39,13 @@ const Todos = {
     if (!title) return;
     const position = this.list.length > 0 ? Math.max(...this.list.map(t => t.position)) + 1 : 0;
 
-    const { error } = await supabaseClient.from("todos").insert({
-      trip_id: this.trip.id, title, position, created_by: Auth.currentUser.id
-    });
+    const due_date = document.getElementById("todo-due").value || null;
+    const row = { trip_id: this.trip.id, title, position, created_by: Auth.currentUser.id };
+    if (due_date) row.due_date = due_date;
+    const { error } = await supabaseClient.from("todos").insert(row);
     if (error) { alert("Errore salvataggio promemoria: " + error.message); return; }
     input.value = "";
+    document.getElementById("todo-due").value = "";
     await this.load();
   },
 
@@ -91,6 +93,7 @@ const Todos = {
         <label class="packing-check">
           <input type="checkbox" ${todo.done ? "checked" : ""}>
           <span>${escapeHtml(todo.title)}</span>
+          ${todo.due_date ? `<small class="todo-due${!todo.done && todo.due_date < localISO() ? " todo-due-late" : ""}">📅 ${escapeHtml(formatDate(todo.due_date))}</small>` : ""}
         </label>
         <button class="icon-btn edit-todo" title="Modifica">✏️</button>
         <button class="icon-btn delete-todo" title="Elimina">✕</button>

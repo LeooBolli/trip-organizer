@@ -10,6 +10,8 @@ document.addEventListener("DOMContentLoaded", () => {
   Jetlag.init();
   Todos.init();
   ExportModule.init();
+  Preferences.init();
+  Dashboard.init();
 
   Auth.init(() => {
     // utente autenticato -> carica la lista viaggi, le voci
@@ -17,7 +19,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // (richiedono tutte una sessione valida per RLS)
     Trips.load();
     CustomOptions.init();
-    Auth.discoverOtherUserId().then(() => Expenses.populatePaidBySelect());
+    Preferences.load();
+    Auth.discoverOtherUserId().then(() => {
+      Expenses.populatePaidBySelect();
+      Dashboard.refresh();
+    });
   });
 
   if ("serviceWorker" in navigator) {

@@ -160,6 +160,7 @@ const Trips = {
     await Packing.openForTrip(trip);
     Jetlag.openForTrip(trip);
     await Todos.openForTrip(trip);
+    Dashboard.openForTrip(trip);
   },
 
   showList() {

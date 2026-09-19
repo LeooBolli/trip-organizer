@@ -29,6 +29,10 @@ create table if not exists trips (
 -- per aggiungere la colonna dei cambi fissi senza perdere i dati:
 alter table trips add column if not exists exchange_rates jsonb not null default '{}'::jsonb;
 
+-- Massimale indicativo di spesa per l'intero viaggio (nella valuta base),
+-- usato dal riquadro Budget della Dashboard (diviso sui giorni di viaggio)
+alter table trips add column if not exists budget numeric(12,2);
+
 -- ------------------------------------------------------------
 -- EXPENSES
 -- paid_by = utente che ha pagato
@@ -173,8 +177,24 @@ create table if not exists todos (
   title text not null,
   done boolean not null default false,
   position integer not null default 0,
+  due_date date, -- scadenza opzionale: i To Do di oggi compaiono nella Dashboard
   created_by uuid references auth.users(id),
   created_at timestamptz not null default now()
+);
+
+-- Se avete già eseguito questo schema in precedenza, aggiunge la scadenza
+-- opzionale ai To Do senza toccare quelli esistenti:
+alter table todos add column if not exists due_date date;
+
+-- ------------------------------------------------------------
+-- USER PREFERENCES (preferenze personali per utente, es. quali
+-- riquadri e sezioni preferite mostrare nella Dashboard - uguali su
+-- tutti i dispositivi dello stesso account)
+-- ------------------------------------------------------------
+create table if not exists user_preferences (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  dashboard_config jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
 );
 
 -- ------------------------------------------------------------
@@ -212,6 +232,7 @@ alter table packing_organizers enable row level security;
 alter table packing_templates enable row level security;
 alter table todos enable row level security;
 alter table custom_options enable row level security;
+alter table user_preferences enable row level security;
 
 drop policy if exists "authenticated full access trips" on trips;
 create policy "authenticated full access trips" on trips
@@ -252,6 +273,11 @@ create policy "authenticated full access todos" on todos
 drop policy if exists "authenticated full access custom_options" on custom_options;
 create policy "authenticated full access custom_options" on custom_options
   for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+
+-- Le preferenze sono private: ognuno legge e scrive solo la propria riga
+drop policy if exists "own preferences" on user_preferences;
+create policy "own preferences" on user_preferences
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- ------------------------------------------------------------
 -- REALTIME
