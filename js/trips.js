@@ -16,6 +16,7 @@ const Trips = {
     document.getElementById("trip-emoji-edit").addEventListener("click", () => this.editEmoji());
     document.getElementById("trips-carousel-prev").addEventListener("click", () => this.scrollCarouselBy(-1));
     document.getElementById("trips-carousel-next").addEventListener("click", () => this.scrollCarouselBy(1));
+    document.getElementById("trip-flags-btn").addEventListener("click", () => this.pickNewTripFlags());
     document.getElementById("currency-rate-add-btn").addEventListener("click", () => this.addCurrencyRate());
 
     supabaseClient
@@ -68,8 +69,7 @@ const Trips = {
       card.className = "trip-hero-card";
       card.style.background = gradients[idx % gradients.length];
       card.innerHTML = `
-        <span class="trip-hero-emoji-bg">${escapeHtml(trip.emoji || "🧳")}</span>
-        <span class="trip-hero-emoji">${escapeHtml(trip.emoji || "🧳")}</span>
+        <span class="trip-hero-emoji">${renderTripIcon(trip.emoji)}</span>
         <span class="trip-hero-info">
           <strong>${escapeHtml(trip.name)}</strong>
           <span>${escapeHtml(trip.destination || "")}</span>
@@ -126,7 +126,7 @@ const Trips = {
     const start_date = document.getElementById("trip-start").value || null;
     const end_date = document.getElementById("trip-end").value || null;
     const base_currency = document.getElementById("trip-currency").value;
-    const emoji = document.getElementById("trip-emoji").value.trim() || "🧳";
+    const emoji = document.getElementById("trip-emoji").value || "🧳";
 
     if (!name) return;
 
@@ -137,6 +137,8 @@ const Trips = {
 
     if (error) { alert("Errore creazione viaggio: " + error.message); return; }
     e.target.reset();
+    document.getElementById("trip-emoji").value = "";
+    document.getElementById("trip-flags-btn").textContent = "🏳️ Scegli una o più bandiere";
     document.getElementById("trip-currency").value = window.APP_CONFIG.DEFAULT_BASE_CURRENCY;
   },
 
@@ -144,7 +146,7 @@ const Trips = {
     this.activeTrip = trip;
     document.getElementById("view-trips").classList.add("hidden");
     document.getElementById("view-trip-detail").classList.remove("hidden");
-    document.getElementById("trip-emoji-edit").textContent = trip.emoji || "🧳";
+    document.getElementById("trip-emoji-edit").innerHTML = renderTripIcon(trip.emoji);
     document.getElementById("trip-detail-title").textContent = trip.name;
     document.getElementById("archive-trip-btn").textContent = trip.archived ? "Riattiva viaggio" : "Archivia viaggio";
 
@@ -217,15 +219,23 @@ const Trips = {
     this.showList();
   },
 
+  async pickNewTripFlags() {
+    const hidden = document.getElementById("trip-emoji");
+    const result = await FlagPicker.open(hidden.value);
+    if (result === null) return;
+    hidden.value = result;
+    document.getElementById("trip-flags-btn").textContent = result || "🏳️ Scegli una o più bandiere";
+  },
+
   async editEmoji() {
     const trip = this.activeTrip;
     if (!trip) return;
-    const input = prompt("Nuova icona per il viaggio (incolla un'emoji):", trip.emoji || "🧳");
-    if (input === null) return;
-    const emoji = input.trim() || "🧳";
+    const result = await FlagPicker.open(trip.emoji);
+    if (result === null) return;
+    const emoji = result || "🧳";
 
     trip.emoji = emoji;
-    document.getElementById("trip-emoji-edit").textContent = emoji;
+    document.getElementById("trip-emoji-edit").innerHTML = renderTripIcon(emoji);
 
     const { error } = await supabaseClient.from("trips").update({ emoji }).eq("id", trip.id);
     if (error) alert(error.message);

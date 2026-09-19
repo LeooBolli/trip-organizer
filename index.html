@@ -72,8 +72,9 @@
           <label>Destinazione</label>
           <input type="text" id="trip-destination" placeholder="Es. Tokyo, Kyoto">
 
-          <label>Emoji</label>
-          <input type="text" id="trip-emoji" placeholder="🗻" maxlength="4">
+          <label>Bandiere del viaggio</label>
+          <input type="hidden" id="trip-emoji">
+          <button type="button" id="trip-flags-btn" class="secondary-btn">🏳️ Scegli una o più bandiere</button>
 
           <label>Data inizio</label>
           <input type="date" id="trip-start">
@@ -93,7 +94,7 @@
     <section id="view-trip-detail" class="view hidden">
       <button id="back-to-trips" class="secondary-btn" style="margin-bottom:12px;">← Tutti i viaggi</button>
       <div class="trip-detail-header">
-        <button type="button" id="trip-emoji-edit" class="trip-emoji" title="Cambia icona"></button>
+        <button type="button" id="trip-emoji-edit" class="trip-emoji" title="Cambia bandiere"></button>
         <h2 id="trip-detail-title"></h2>
       </div>
 
@@ -583,6 +584,25 @@
   </main>
 </div>
 
+<!-- Selezione bandiere del viaggio -->
+<div id="flag-picker-overlay" class="modal-overlay hidden">
+  <div class="modal-preview flag-picker">
+    <div class="modal-preview-header">
+      <strong>Scegli le bandiere</strong>
+      <button type="button" id="flag-picker-close" class="icon-btn" title="Chiudi">✕</button>
+    </div>
+    <div class="flag-picker-top">
+      <div id="flag-picker-selected" class="flag-selected"></div>
+      <input type="search" id="flag-picker-search" placeholder="🔍 Cerca un paese...">
+    </div>
+    <div id="flag-picker-list" class="flag-list"></div>
+    <div class="flag-picker-footer">
+      <button type="button" id="flag-picker-clear" class="secondary-btn">Svuota</button>
+      <button type="button" id="flag-picker-confirm" class="primary-btn">Conferma</button>
+    </div>
+  </div>
+</div>
+
 <!-- Anteprima documento (PDF/immagine) senza doverlo scaricare -->
 <div id="doc-preview-overlay" class="modal-overlay hidden">
   <div class="modal-preview">
@@ -612,6 +632,7 @@
 <script src="js/config.js"></script>
 <script src="js/supabaseClient.js"></script>
 <script src="js/theme.js"></script>
+<script src="js/flags.js"></script>
 <script src="js/trips.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/customOptions.js"></script>

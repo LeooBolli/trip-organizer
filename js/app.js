@@ -2,6 +2,7 @@
 // Entry point - inizializzazione app
 // ============================================================
 document.addEventListener("DOMContentLoaded", () => {
+  FlagPicker.init();
   Trips.init();
   Expenses.init();
   Bookings.init();
