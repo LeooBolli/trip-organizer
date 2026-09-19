@@ -47,11 +47,13 @@ const Dashboard = {
   trip: null,
   refreshTimer: null,
   spending: { mode: "total", day: localISO(), user: "all" },
+  converter: { amount: "", from: "", to: "" },
 
   init() {
     const root = document.getElementById("dashboard-content");
     root.addEventListener("click", (e) => this.onClick(e));
     root.addEventListener("change", (e) => this.onChange(e));
+    root.addEventListener("input", (e) => this.onInput(e));
     document.getElementById("dashboard-fab").addEventListener("click", () => {
       window.switchTab("tab-expenses");
       setTimeout(() => document.getElementById("expense-description").focus(), 350);
@@ -71,6 +73,7 @@ const Dashboard = {
   openForTrip(trip) {
     this.trip = trip;
     this.spending = { mode: "total", day: localISO(), user: "all" };
+    this.converter = { amount: "", from: "", to: "" };
     window.switchTab("tab-dashboard");
     this.render();
   },
@@ -93,10 +96,20 @@ const Dashboard = {
   },
 
   onChange(e) {
-    if (e.target.dataset.action === "spend-day" && e.target.value) {
+    const action = e.target.dataset.action;
+    if (action === "spend-day" && e.target.value) {
       this.spending.day = e.target.value;
       this.render();
+    } else if (action === "conv-from" || action === "conv-to") {
+      this.converter[action === "conv-from" ? "from" : "to"] = e.target.value;
+      this.render();
     }
+  },
+
+  onInput(e) {
+    if (e.target.dataset.action !== "conv-amount") return;
+    this.converter.amount = e.target.value;
+    document.getElementById("dash-conv-result").innerHTML = this.convertedText();
   },
 
   handleAction(el) {
@@ -104,6 +117,7 @@ const Dashboard = {
     if (action === "budget-edit") this.editBudget();
     else if (action === "spend-mode") { this.spending.mode = el.dataset.value; this.render(); }
     else if (action === "spend-user") { this.spending.user = el.dataset.value; this.render(); }
+    else if (action === "conv-swap") { const c = this.converter; [c.from, c.to] = [c.to, c.from]; this.render(); }
     else if (action === "spend-shift") { this.spending.day = shiftISO(this.spending.day, parseInt(el.dataset.value, 10)); this.render(); }
   },
 
@@ -181,45 +195,17 @@ const Dashboard = {
     if (!this.trip || !Auth.currentUser) { root.innerHTML = ""; return; }
 
     const prefs = Preferences;
-    const parts = [this.renderHero()];
+    const parts = [];
     if (prefs.isWidgetOn("balance")) parts.push(this.renderBalance());
     if (prefs.isWidgetOn("today")) parts.push(this.renderToday());
     if (prefs.isWidgetOn("budget")) parts.push(this.renderBudget());
     if (prefs.isWidgetOn("spending")) parts.push(this.renderSpending());
+    if (prefs.isWidgetOn("converter")) parts.push(this.renderConverter());
     const favs = this.renderFavorites();
     if (favs) parts.push(favs);
-    if (parts.length === 1) parts.push(`<div class="dash-card"><p class="dash-muted">Nessun riquadro attivo. Scegli cosa mostrare da ⚙️ Impostazioni.</p></div>`);
+    if (parts.length === 0) parts.push(`<div class="dash-card"><p class="dash-muted">Nessun riquadro attivo. Scegli cosa mostrare da ⚙️ Impostazioni.</p></div>`);
 
     root.innerHTML = parts.join("");
-  },
-
-  renderHero() {
-    const t = this.trip;
-    const today = localISO();
-    let status = "Imposta le date del viaggio dal Riepilogo";
-    let progress = "";
-    if (t.start_date) {
-      const untilStart = daysBetween(today, t.start_date);
-      const total = this.tripDays();
-      if (untilStart > 0) status = untilStart === 1 ? "Si parte domani!" : `Partenza tra ${untilStart} giorni`;
-      else if (t.end_date && today > t.end_date) status = "Viaggio concluso";
-      else if (total) {
-        const dayNo = -untilStart + 1;
-        status = `Giorno ${dayNo} di ${total}`;
-        progress = `<div class="dash-progress"><div style="width:${Math.min(100, dayNo / total * 100)}%"></div></div>`;
-      }
-    }
-    const dates = t.start_date ? `${formatDate(t.start_date)}${t.end_date ? " – " + formatDate(t.end_date) : ""}` : "";
-    return `
-      <div class="dash-hero" data-goto="tab-summary">
-        <span class="dash-hero-emoji">${escapeHtml(t.emoji || "🧳")}</span>
-        <div class="dash-hero-info">
-          <strong>${escapeHtml(t.name)}</strong>
-          <span>${escapeHtml([t.destination, dates].filter(Boolean).join(" · "))}</span>
-          <em>${escapeHtml(status)}</em>
-          ${progress}
-        </div>
-      </div>`;
   },
 
   renderBalance() {
@@ -404,6 +390,53 @@ const Dashboard = {
           ${this.donut(segments, total, formatMoney(total, base))}
           <div class="dash-legend">${legend}</div>
         </div>
+      </div>`;
+  },
+
+  converterCurrencies() {
+    const rates = this.trip.exchange_rates || {};
+    return [this.trip.base_currency, ...Object.keys(rates).filter(c => c !== this.trip.base_currency)];
+  },
+
+  // Quanto vale 1 unità della valuta nella valuta base (cambi fissi del viaggio)
+  rateToBase(code) {
+    return code === this.trip.base_currency ? 1 : Number((this.trip.exchange_rates || {})[code]) || 0;
+  },
+
+  convertedText() {
+    const c = this.converter;
+    const amount = parseFloat(String(c.amount).replace(",", "."));
+    const fromRate = this.rateToBase(c.from);
+    const toRate = this.rateToBase(c.to);
+    if (!amount || !fromRate || !toRate) return `<span class="dash-muted">Inserisci un importo</span>`;
+    const result = amount * fromRate / toRate;
+    return `${escapeHtml(formatMoney(amount, c.from))} = <b>${escapeHtml(formatMoney(result, c.to))}</b>`;
+  },
+
+  renderConverter() {
+    const currencies = this.converterCurrencies();
+    if (currencies.length < 2) {
+      return `
+        <div class="dash-card" data-goto="tab-summary">
+          <div class="dash-card-title">Convertitore <span class="dash-arrow">›</span></div>
+          <p class="dash-muted" style="margin:0;">Imposta almeno un cambio fisso dal Riepilogo del viaggio per convertire al volo tra le valute.</p>
+        </div>`;
+    }
+    const c = this.converter;
+    if (!currencies.includes(c.from)) c.from = currencies[1];
+    if (!currencies.includes(c.to)) c.to = this.trip.base_currency;
+    const options = (selected) => currencies.map(code => `<option value="${escapeHtml(code)}"${code === selected ? " selected" : ""}>${escapeHtml(code)}</option>`).join("");
+
+    return `
+      <div class="dash-card">
+        <div class="dash-card-title">Convertitore</div>
+        <div class="dash-conv-row">
+          <input type="number" inputmode="decimal" step="any" min="0" placeholder="0,00" value="${escapeHtml(c.amount)}" data-action="conv-amount">
+          <select data-action="conv-from">${options(c.from)}</select>
+          <button type="button" class="dash-mini" data-action="conv-swap" title="Inverti">⇄</button>
+          <select data-action="conv-to">${options(c.to)}</select>
+        </div>
+        <div class="dash-conv-result" id="dash-conv-result">${this.convertedText()}</div>
       </div>`;
   },
 

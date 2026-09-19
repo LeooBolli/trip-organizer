@@ -6,7 +6,7 @@
 // ============================================================
 // Cambiare questo nome ad ogni modifica di app shell/stile: forza il
 // browser a scaricare i file nuovi invece di servire quelli in cache.
-const CACHE_NAME = "pdtravel-v17";
+const CACHE_NAME = "pdtravel-v18";
 const APP_SHELL = [
   "./",
   "./index.html",

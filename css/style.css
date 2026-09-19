@@ -947,21 +947,6 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
    DASHBOARD (stile "control center": card scure molto stondate,
    numeri grandi, grafici a colpo d'occhio)
    ============================================================ */
-.dash-hero {
-  display: flex; align-items: center; gap: 16px;
-  background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent) 100%);
-  color: #fff; border-radius: var(--radius); padding: 20px;
-  margin-bottom: 14px; box-shadow: 0 14px 32px rgba(217, 115, 36, 0.3); cursor: pointer;
-}
-.dash-hero-emoji {
-  flex: 0 0 auto; width: 62px; height: 62px; border-radius: 50%;
-  background: rgba(255, 255, 255, 0.22); display: flex; align-items: center; justify-content: center; font-size: 2rem;
-}
-.dash-hero-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-.dash-hero-info strong { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.01em; }
-.dash-hero-info span { font-size: 0.85rem; opacity: 0.9; }
-.dash-hero-info em { font-style: italic; font-weight: 800; font-size: 1.05rem; margin-top: 4px; }
-
 .dash-progress { height: 8px; border-radius: 99px; background: rgba(255, 255, 255, 0.25); overflow: hidden; margin-top: 8px; }
 .dash-progress > div { height: 100%; border-radius: 99px; background: #fff; transition: width 0.3s ease; }
 .dash-progress-thin { height: 6px; background: rgba(255, 255, 255, 0.12); margin-top: 6px; }
@@ -1090,3 +1075,12 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
 
 .todo-due { display: block; color: var(--text-muted); font-size: 0.75rem; font-weight: 700; }
 .todo-due-late { color: var(--negative); }
+
+.dash-conv-row { display: flex; align-items: center; gap: 8px; }
+.dash-conv-row input, .dash-conv-row select {
+  background: var(--surface-dark-alt); color: var(--text-on-dark); border-color: transparent; padding: 11px 10px; min-width: 0;
+}
+.dash-conv-row input { flex: 1 1 90px; }
+.dash-conv-row select { flex: 0 0 auto; width: auto; }
+.dash-conv-result { margin-top: 14px; font-size: 1.15rem; font-weight: 600; color: var(--text-muted-on-dark); }
+.dash-conv-result b { font-size: 1.6rem; font-weight: 800; color: var(--text-on-dark); }

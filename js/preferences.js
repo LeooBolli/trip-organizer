@@ -8,7 +8,8 @@ const DASHBOARD_WIDGETS = [
   { id: "balance", icon: "💰", label: "Bilancio", desc: "Chi deve quanto a chi e quanto ha speso ognuno" },
   { id: "today", icon: "📅", label: "Oggi", desc: "Prenotazioni, itinerario e To Do di oggi" },
   { id: "budget", icon: "🎯", label: "Budget", desc: "Massimale di spesa, diviso sui giorni di viaggio" },
-  { id: "spending", icon: "🍩", label: "Spese", desc: "Grafico a torta per macroarea, giornaliero o totale" }
+  { id: "spending", icon: "🍩", label: "Spese", desc: "Grafico a torta per macroarea, giornaliero o totale" },
+  { id: "converter", icon: "💱", label: "Convertitore", desc: "Conversione rapida tra le valute del viaggio" }
 ];
 
 const DASHBOARD_FAVORITES = [
@@ -22,6 +23,7 @@ const DASHBOARD_FAVORITES = [
 const Preferences = {
   LOCAL_KEY: "pdtravel-dashboard-config",
   config: {
+    converterSeen: true,
     widgets: DASHBOARD_WIDGETS.map(w => w.id),
     favorites: ["itinerary", "packing", "bookings", "todo"]
   },
@@ -41,7 +43,14 @@ const Preferences = {
   },
 
   applyConfig(cfg) {
-    if (Array.isArray(cfg.widgets)) this.config.widgets = cfg.widgets;
+    if (Array.isArray(cfg.widgets)) {
+      this.config.widgets = cfg.widgets;
+      // Configurazioni salvate prima del Convertitore: lo attiva una volta sola
+      if (!cfg.converterSeen) {
+        if (!this.config.widgets.includes("converter")) this.config.widgets.push("converter");
+        this.config.converterSeen = true;
+      }
+    }
     if (Array.isArray(cfg.favorites)) this.config.favorites = cfg.favorites;
   },
 
