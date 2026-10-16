@@ -3,8 +3,8 @@
 // (vedi README.md per la guida passo passo)
 // ============================================================
 window.APP_CONFIG = {
-  SUPABASE_URL: "https://jhfdfupbifobpznnriwu.supabase.co",
-  SUPABASE_ANON_KEY: "sb_publishable_A3p9QZtklZpzxo73q6iOlw_kjg91oWW",
+  SUPABASE_URL: "https://zwqoxbkcfebiipkssiws.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_RGYs1fsWIyP1K-6R6Yxx3g_EXnB4-k8",
 
   // Le uniche email autorizzate ad usare l'app.
   // Anche se qualcuno indovinasse l'URL, senza essere in questa lista

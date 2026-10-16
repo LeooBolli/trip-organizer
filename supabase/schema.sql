@@ -234,50 +234,34 @@ alter table todos enable row level security;
 alter table custom_options enable row level security;
 alter table user_preferences enable row level security;
 
-drop policy if exists "authenticated full access trips" on trips;
-create policy "authenticated full access trips" on trips
-  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-
-drop policy if exists "authenticated full access expenses" on expenses;
-create policy "authenticated full access expenses" on expenses
-  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-
-drop policy if exists "authenticated full access bookings" on bookings;
-create policy "authenticated full access bookings" on bookings
-  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-
-drop policy if exists "authenticated full access documents" on documents;
-create policy "authenticated full access documents" on documents
-  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-
-drop policy if exists "authenticated full access itinerary_items" on itinerary_items;
-create policy "authenticated full access itinerary_items" on itinerary_items
-  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-
-drop policy if exists "authenticated full access packing_items" on packing_items;
-create policy "authenticated full access packing_items" on packing_items
-  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-
-drop policy if exists "authenticated full access packing_organizers" on packing_organizers;
-create policy "authenticated full access packing_organizers" on packing_organizers
-  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-
-drop policy if exists "authenticated full access packing_templates" on packing_templates;
-create policy "authenticated full access packing_templates" on packing_templates
-  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-
-drop policy if exists "authenticated full access todos" on todos;
-create policy "authenticated full access todos" on todos
-  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-
-drop policy if exists "authenticated full access custom_options" on custom_options;
-create policy "authenticated full access custom_options" on custom_options
-  for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+-- Accesso solo ai due account di PDTravel (stesse email di ALLOWED_EMAILS
+-- in js/config.js). Il progetto Supabase è condiviso con Kurashi, che ha un
+-- altro account: quello può fare login ma qui non legge né scrive nulla.
+do $$
+declare
+  t text;
+begin
+  foreach t in array array['trips','expenses','bookings','documents',
+    'itinerary_items','packing_items','packing_organizers',
+    'packing_templates','todos','custom_options']
+  loop
+    execute format('drop policy if exists %I on %I', 'authenticated full access ' || t, t);
+    execute format('drop policy if exists "pdtravel users" on %I', t);
+    execute format(
+      'create policy "pdtravel users" on %I for all to authenticated '
+      'using ((auth.jwt() ->> ''email'') in (''leonardobolli@gmail.com'', ''biagettimariachiara@gmail.com'')) '
+      'with check ((auth.jwt() ->> ''email'') in (''leonardobolli@gmail.com'', ''biagettimariachiara@gmail.com''))',
+      t
+    );
+  end loop;
+end $$;
 
 -- Le preferenze sono private: ognuno legge e scrive solo la propria riga
 drop policy if exists "own preferences" on user_preferences;
 create policy "own preferences" on user_preferences
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+  for all to authenticated
+  using (auth.uid() = user_id and (auth.jwt() ->> 'email') in ('leonardobolli@gmail.com', 'biagettimariachiara@gmail.com'))
+  with check (auth.uid() = user_id and (auth.jwt() ->> 'email') in ('leonardobolli@gmail.com', 'biagettimariachiara@gmail.com'));
 
 -- ------------------------------------------------------------
 -- REALTIME
@@ -312,12 +296,15 @@ on conflict (id) do nothing;
 
 drop policy if exists "authenticated read documents storage" on storage.objects;
 create policy "authenticated read documents storage" on storage.objects
-  for select using (bucket_id = 'trip-documents' and auth.role() = 'authenticated');
+  for select to authenticated
+  using (bucket_id = 'trip-documents' and (auth.jwt() ->> 'email') in ('leonardobolli@gmail.com', 'biagettimariachiara@gmail.com'));
 
 drop policy if exists "authenticated upload documents storage" on storage.objects;
 create policy "authenticated upload documents storage" on storage.objects
-  for insert with check (bucket_id = 'trip-documents' and auth.role() = 'authenticated');
+  for insert to authenticated
+  with check (bucket_id = 'trip-documents' and (auth.jwt() ->> 'email') in ('leonardobolli@gmail.com', 'biagettimariachiara@gmail.com'));
 
 drop policy if exists "authenticated delete documents storage" on storage.objects;
 create policy "authenticated delete documents storage" on storage.objects
-  for delete using (bucket_id = 'trip-documents' and auth.role() = 'authenticated');
+  for delete to authenticated
+  using (bucket_id = 'trip-documents' and (auth.jwt() ->> 'email') in ('leonardobolli@gmail.com', 'biagettimariachiara@gmail.com'));
