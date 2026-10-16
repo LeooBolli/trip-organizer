@@ -37,17 +37,22 @@ const Auth = {
       await supabaseClient.auth.signOut();
     });
 
-    supabaseClient.auth.onAuthStateChange((_event, session) => {
-      this.currentUser = session ? session.user : null;
-      this.updateUI();
-      if (this.currentUser) onReady(this.currentUser);
-    });
+    supabaseClient.auth.onAuthStateChange((_event, session) => this.applySession(session, onReady));
 
-    supabaseClient.auth.getSession().then(({ data }) => {
-      this.currentUser = data.session ? data.session.user : null;
-      this.updateUI();
-      if (this.currentUser) onReady(this.currentUser);
-    });
+    supabaseClient.auth.getSession().then(({ data }) => this.applySession(data.session, onReady));
+  },
+
+  // Una sessione di un'email non autorizzata (es. l'account di Kurashi, che
+  // usa lo stesso progetto Supabase) viene chiusa solo su questo dispositivo.
+  applySession(session, onReady) {
+    const email = session ? (session.user.email || "").toLowerCase() : "";
+    if (session && !window.APP_CONFIG.ALLOWED_EMAILS.map(x => x.toLowerCase()).includes(email)) {
+      supabaseClient.auth.signOut({ scope: "local" });
+      session = null;
+    }
+    this.currentUser = session ? session.user : null;
+    this.updateUI();
+    if (this.currentUser) onReady(this.currentUser);
   },
 
   updateUI() {
