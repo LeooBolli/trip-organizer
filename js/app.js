@@ -3,6 +3,8 @@
 // ============================================================
 document.addEventListener("DOMContentLoaded", () => {
   FlagPicker.init();
+  WorldMap.init();
+  Nav.init();
   Trips.init();
   Expenses.init();
   Bookings.init();
@@ -14,7 +16,8 @@ document.addEventListener("DOMContentLoaded", () => {
   Preferences.init();
   Dashboard.init();
 
-  Auth.init(() => {
+  Auth.init((user) => {
+    Nav.setUser(user);
     // utente autenticato -> carica la lista viaggi, le voci
     // personalizzate e prova a scoprire l'id dell'altra persona
     // (richiedono tutte una sessione valida per RLS)

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>PDTravel</title>
-<meta name="theme-color" content="#EE8F45">
+<meta name="theme-color" content="#3F5A55">
 <link rel="manifest" href="manifest.json">
 <!-- Icone esplicite: Kurashi sta sullo stesso dominio e senza una favicon
      propria Safari mostrerebbe la sua nei Preferiti -->
@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-title" content="PDTravel">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H"
@@ -23,93 +23,164 @@
 </head>
 <body>
 
+<!-- Icone (tratto sottile, colore dal testo) -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3.5 10.5 12 3.5l8.5 7"/><path d="M5.5 9v11.5h13V9"/><path d="M10 20.5v-6h4v6"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M5 7h13.5A2.5 2.5 0 0 1 21 9.5v9a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 18.5v-12A2.5 2.5 0 0 1 5.5 4H17v3"/><path d="M16 14h2"/></symbol>
+  <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h15A1.5 1.5 0 0 1 21 7.5V10a2 2 0 0 0 0 4v2.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 16.5V14a2 2 0 0 0 0-4z"/><path d="M15 6.5v2M15 11v2M15 15.5v2"/></symbol>
+  <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="18.5" r="2.2"/><circle cx="18" cy="5.5" r="2.2"/><path d="M8.2 18.5h8.3a3.5 3.5 0 0 0 0-7h-9a3.5 3.5 0 0 1 0-7h8.3"/></symbol>
+  <symbol id="i-luggage" viewBox="0 0 24 24"><rect x="5" y="7" width="14" height="12.5" rx="2.5"/><path d="M9 7V4.5h6V7M9.5 11v5M14.5 11v5M8 19.5V21M16 19.5V21"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><path d="m8.5 12.2 2.4 2.4 4.7-5.2"/></symbol>
+  <symbol id="i-pie" viewBox="0 0 24 24"><path d="M20.5 13.5A8.5 8.5 0 1 1 10.5 3.5v10z"/><path d="M14 3.2a8.5 8.5 0 0 1 6.8 6.8H14z"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.8"/><path d="M3.2 12h17.6M12 3.2c2.4 2.5 3.6 5.4 3.6 8.8s-1.2 6.3-3.6 8.8c-2.4-2.5-3.6-5.4-3.6-8.8S9.6 5.7 12 3.2z"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6.5h9M18 6.5h2M4 12h3M11 12h9M4 17.5h11M19 17.5h1"/><circle cx="15.5" cy="6.5" r="2.2"/><circle cx="8.8" cy="12" r="2.2"/><circle cx="17" cy="17.5" r="2.2"/></symbol>
+  <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 3.5v8"/><path d="M6.6 6.9a7.6 7.6 0 1 0 10.8 0"/></symbol>
+  <symbol id="i-dots" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.8-6-6.8-11.3a6.8 6.8 0 0 1 13.6 0C18.8 15 12 21 12 21z"/><circle cx="12" cy="9.7" r="2.4"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-coins" viewBox="0 0 24 24"><circle cx="9.5" cy="9.5" r="5.8"/><path d="M14.6 7.6a5.8 5.8 0 1 1-7 7"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m7 9.5 5 5 5-5"/></symbol>
+  <symbol id="i-plane" viewBox="0 0 24 24"><path d="M21 15.5v-1.8l-7.5-4.5V4a1.5 1.5 0 0 0-3 0v5.2L3 13.7v1.8l7.5-2.3v4.6l-2 1.5V21l3.5-1 3.5 1v-1.7l-2-1.5v-4.6z"/></symbol>
+</svg>
+
 <!-- LOGIN -->
 <section id="view-login">
   <div class="login-card">
-    <h1>🧳 PDTravel</h1>
+    <div class="brand"><span class="brand-mark"><svg class="ico"><use href="#i-plane"/></svg></span>PDTravel</div>
+    <div id="login-world-map" class="world-map login-map" aria-hidden="true"></div>
     <p>Accedi per gestire i viaggi insieme.</p>
     <form id="login-form">
       <input type="email" id="login-email" name="email" autocomplete="username" placeholder="La tua email" required>
       <input type="password" id="login-password" name="password" autocomplete="current-password" placeholder="Password" required>
       <button type="submit">Accedi</button>
     </form>
-    <p id="login-status" style="font-size:0.85rem;color:var(--text-muted)"></p>
+    <p id="login-status"></p>
   </div>
 </section>
 
 <!-- APP -->
 <div id="app-shell" class="hidden">
-  <header class="top-bar">
-    <h1 id="header-title">🧳 PDTravel</h1>
-    <div style="display:flex;align-items:center;gap:12px;">
-      <label class="theme-switch">🌙 <input type="checkbox" id="theme-toggle"></label>
-      <button id="settings-btn" class="icon-btn" title="Impostazioni">⚙️</button>
-      <button id="logout-btn" class="icon-btn" title="Esci">⏻</button>
+  <!-- Sidebar (PC) -->
+  <aside class="sidebar">
+    <div class="side-profile">
+      <span class="avatar avatar-lg"><span class="js-user-initials"></span></span>
+      <strong id="current-user-email" class="side-name"></strong>
+      <small class="js-user-email"></small>
     </div>
+
+    <nav class="side-nav">
+      <button type="button" class="nav-item" data-nav="trips"><svg class="ico"><use href="#i-globe"/></svg><span>I miei viaggi</span></button>
+      <div class="side-label trip-only" id="side-trip-label"></div>
+      <button type="button" class="nav-item tab-btn trip-only active" data-tab="tab-dashboard"><svg class="ico"><use href="#i-home"/></svg><span>Dashboard</span></button>
+      <button type="button" class="nav-item tab-btn trip-only" data-tab="tab-expenses"><svg class="ico"><use href="#i-wallet"/></svg><span>Spese</span></button>
+      <button type="button" class="nav-item tab-btn trip-only" data-tab="tab-bookings"><svg class="ico"><use href="#i-ticket"/></svg><span>Prenotazioni</span></button>
+      <button type="button" class="nav-item tab-btn trip-only" data-tab="tab-itinerary"><svg class="ico"><use href="#i-route"/></svg><span>Itinerario</span></button>
+      <button type="button" class="nav-item tab-btn trip-only" data-tab="tab-packing"><svg class="ico"><use href="#i-luggage"/></svg><span>Valigia</span></button>
+      <button type="button" class="nav-item tab-btn trip-only" data-tab="tab-jetlag"><svg class="ico"><use href="#i-moon"/></svg><span>Jet Lag</span></button>
+      <button type="button" class="nav-item tab-btn trip-only" data-tab="tab-todo"><svg class="ico"><use href="#i-check"/></svg><span>To Do</span></button>
+      <button type="button" class="nav-item tab-btn trip-only" data-tab="tab-summary"><svg class="ico"><use href="#i-pie"/></svg><span>Riepilogo</span></button>
+    </nav>
+
+    <div class="side-map">
+      <div class="side-label">Paesi visitati · <b id="side-map-count">0</b></div>
+      <button type="button" class="side-map-btn" data-nav="trips" title="Apri la mappa dei viaggi">
+        <span id="side-world-map" class="world-map world-map-mini"></span>
+      </button>
+    </div>
+
+    <div class="side-footer">
+      <button type="button" id="settings-btn" class="side-icon" title="Impostazioni"><svg class="ico"><use href="#i-sliders"/></svg></button>
+      <label class="side-icon theme-switch" title="Tema chiaro / scuro">
+        <input type="checkbox" id="theme-toggle" class="visually-hidden">
+        <svg class="ico show-light"><use href="#i-moon"/></svg>
+        <svg class="ico show-dark"><use href="#i-sun"/></svg>
+      </label>
+      <button type="button" id="logout-btn" class="side-icon" title="Esci"><svg class="ico"><use href="#i-power"/></svg></button>
+    </div>
+  </aside>
+
+  <!-- Barra in alto (telefono) -->
+  <header class="top-bar">
+    <button type="button" id="topbar-trip" class="topbar-trip"></button>
+    <button type="button" id="topbar-avatar" class="avatar avatar-sm" title="Menu"><span class="js-user-initials"></span></button>
   </header>
 
   <main>
-    <p style="font-size:0.8rem;color:var(--text-muted);margin-top:0;">Connesso come <span id="current-user-email"></span></p>
-
     <!-- VIEW: TRIPS LIST -->
     <section id="view-trips" class="view">
-      <label class="theme-switch" style="margin-bottom:12px;">
-        <input type="checkbox" id="show-archived-toggle"> Mostra viaggi archiviati
-      </label>
-
-      <div id="trips-carousel-wrap" class="trips-carousel-wrap">
-        <div id="trips-list" class="trips-carousel"></div>
-        <div id="trips-carousel-nav" class="trips-carousel-nav">
-          <button type="button" id="trips-carousel-prev" class="carousel-arrow">←</button>
-          <div id="trips-carousel-dots" class="carousel-dots"></div>
-          <button type="button" id="trips-carousel-next" class="carousel-arrow">→</button>
+      <div class="trips-layout">
+        <div class="map-panel">
+          <div class="map-panel-head">
+            <span class="eyebrow">I miei posti</span>
+            <span class="map-legend"><i class="lg-visited"></i>Visitati <i class="lg-planned"></i>In programma</span>
+          </div>
+          <div id="trips-world-map" class="world-map"></div>
+          <div class="map-stats">
+            <div><b id="map-stat-countries">0</b><small>Paesi</small></div>
+            <div><b id="map-stat-world">0%</b><small>del mondo</small></div>
+            <div><b id="map-stat-trips">0</b><small>Viaggi fatti</small></div>
+          </div>
+          <div id="map-stat-planned" class="map-planned"></div>
+          <div id="world-map-caption" class="world-map-caption"></div>
         </div>
-      </div>
 
-      <div class="card">
-        <h3>Nuovo viaggio</h3>
-        <form id="new-trip-form">
-          <label>Nome viaggio</label>
-          <input type="text" id="trip-name" placeholder="Es. Giappone 2026" required>
+        <div class="trips-results">
+          <div class="section-head">
+            <h2>Viaggi <span id="trips-count"></span></h2>
+            <label class="pill-toggle">
+              <input type="checkbox" id="show-archived-toggle"> Archiviati
+            </label>
+          </div>
+          <div id="trips-list" class="trips-list"></div>
+        </div>
 
-          <label>Destinazione</label>
-          <input type="text" id="trip-destination" placeholder="Es. Tokyo, Kyoto">
-
-          <label>Bandiere del viaggio</label>
-          <input type="hidden" id="trip-emoji">
-          <button type="button" id="trip-flags-btn" class="secondary-btn">🏳️ Scegli una o più bandiere</button>
-
-          <label>Data inizio</label>
-          <input type="date" id="trip-start">
-
-          <label>Data fine</label>
-          <input type="date" id="trip-end">
-
-          <label>Valuta base</label>
-          <select id="trip-currency"></select>
-
-          <button type="submit">Crea viaggio</button>
-        </form>
+        <div class="card new-trip-card">
+          <h3>Nuovo viaggio</h3>
+          <form id="new-trip-form" class="form-grid">
+            <div class="span-2">
+              <label>Nome viaggio</label>
+              <input type="text" id="trip-name" placeholder="Es. Giappone 2026" required>
+            </div>
+            <div class="span-2">
+              <label>Destinazione</label>
+              <input type="text" id="trip-destination" placeholder="Es. Tokyo, Kyoto">
+            </div>
+            <div class="span-2">
+              <label>Bandiere del viaggio</label>
+              <input type="hidden" id="trip-emoji">
+              <button type="button" id="trip-flags-btn" class="secondary-btn">🏳️ Scegli una o più bandiere</button>
+            </div>
+            <div>
+              <label>Data inizio</label>
+              <input type="date" id="trip-start">
+            </div>
+            <div>
+              <label>Data fine</label>
+              <input type="date" id="trip-end">
+            </div>
+            <div class="span-2">
+              <label>Valuta base</label>
+              <select id="trip-currency"></select>
+            </div>
+            <button type="submit" class="span-2">Crea viaggio</button>
+          </form>
+        </div>
       </div>
     </section>
 
     <!-- VIEW: TRIP DETAIL -->
     <section id="view-trip-detail" class="view hidden">
-      <button id="back-to-trips" class="secondary-btn" style="margin-bottom:12px;">← Tutti i viaggi</button>
-      <div class="trip-detail-header">
+      <button id="back-to-trips" class="hidden" type="button">← Tutti i viaggi</button>
+      <div class="trip-hero">
         <button type="button" id="trip-emoji-edit" class="trip-emoji" title="Cambia bandiere"></button>
-        <h2 id="trip-detail-title"></h2>
-      </div>
-
-      <div class="tabs">
-        <button class="tab-btn active" data-tab="tab-dashboard">🏠 Dashboard</button>
-        <button class="tab-btn" data-tab="tab-expenses">💰 Spese</button>
-        <button class="tab-btn" data-tab="tab-bookings">📋 Prenotazioni</button>
-        <button class="tab-btn" data-tab="tab-itinerary">🗓️ Itinerario</button>
-        <button class="tab-btn" data-tab="tab-packing">🧳 Valigia</button>
-        <button class="tab-btn" data-tab="tab-jetlag">🌙 Jet Lag</button>
-        <button class="tab-btn" data-tab="tab-todo">✅ To Do</button>
-        <button class="tab-btn" data-tab="tab-summary">📊 Riepilogo</button>
+        <div class="trip-hero-text">
+          <span class="eyebrow">Viaggio</span>
+          <h2 id="trip-detail-title"></h2>
+          <div id="trip-hero-pills" class="hero-pills"></div>
+        </div>
       </div>
 
       <!-- TAB: DASHBOARD -->
@@ -119,7 +190,8 @@
       </div>
 
       <!-- TAB: EXPENSES -->
-      <div id="tab-expenses" class="tab-panel hidden">
+      <div id="tab-expenses" class="tab-panel panel-grid hidden">
+        <div class="panel-side">
         <div class="card balance-card">
           <div id="balance-summary"></div>
         </div>
@@ -186,6 +258,8 @@
           </form>
         </div>
 
+        </div>
+        <div class="panel-main">
         <div class="card" id="expense-filters-card">
           <div class="card-header">
             <h3>Filtra spese</h3>
@@ -217,10 +291,12 @@
           </div>
           <div id="expenses-list"></div>
         </div>
+        </div>
       </div>
 
       <!-- TAB: BOOKINGS -->
-      <div id="tab-bookings" class="tab-panel hidden">
+      <div id="tab-bookings" class="tab-panel panel-grid hidden">
+        <div class="panel-side">
         <div class="card">
           <h3>Aggiungi prenotazione</h3>
           <form id="new-booking-form">
@@ -275,14 +351,18 @@
           </form>
         </div>
 
+        </div>
+        <div class="panel-main">
         <div class="card">
           <h3>Le tue prenotazioni</h3>
           <div id="bookings-list"></div>
         </div>
+        </div>
       </div>
 
       <!-- TAB: ITINERARY -->
-      <div id="tab-itinerary" class="tab-panel hidden">
+      <div id="tab-itinerary" class="tab-panel panel-grid hidden">
+        <div class="panel-side">
         <div class="card">
           <h3>Aggiungi tappa</h3>
           <form id="new-itinerary-form">
@@ -364,15 +444,19 @@
           </form>
         </div>
 
+        </div>
+        <div class="panel-main">
         <div id="itinerary-days"></div>
+        </div>
       </div>
 
       <!-- TAB: PACKING (VALIGIA) -->
-      <div id="tab-packing" class="tab-panel hidden">
-        <div class="segmented" id="packing-owner-switch">
+      <div id="tab-packing" class="tab-panel panel-grid hidden">
+        <div class="segmented panel-top" id="packing-owner-switch">
           <button type="button" class="segmented-btn active" data-owner="me">🧍 La mia valigia</button>
           <button type="button" class="segmented-btn" data-owner="other">🧍 Valigia di <span id="packing-other-label">compagno/a</span></button>
         </div>
+        <div class="panel-side">
 
         <div class="card" id="packing-organizer-quickadd-card">
           <h3>I tuoi organizer</h3>
@@ -431,6 +515,8 @@
           </form>
         </div>
 
+        </div>
+        <div class="panel-main">
         <div style="margin:4px 4px 12px;">
           <input type="search" id="packing-search" placeholder="🔍 Cerca un oggetto...">
         </div>
@@ -444,10 +530,12 @@
         <div class="card" id="packing-save-template-card">
           <button type="button" id="save-packing-template-btn" class="secondary-btn" style="width:100%;">💾 Salva tutta la valigia come modello</button>
         </div>
+        </div>
       </div>
 
       <!-- TAB: JET LAG -->
-      <div id="tab-jetlag" class="tab-panel hidden">
+      <div id="tab-jetlag" class="tab-panel panel-grid hidden">
+        <div class="panel-side">
         <div class="card">
           <h3>Consigli generali</h3>
           <ul class="tips-list">
@@ -461,6 +549,8 @@
           <p class="card-text">Consigli generali, non sostituiscono un parere medico.</p>
         </div>
 
+        </div>
+        <div class="panel-main">
         <div class="card">
           <h3>Piano di adattamento</h3>
           <form id="jetlag-form">
@@ -480,10 +570,12 @@
           </form>
           <div id="jetlag-plan"></div>
         </div>
+        </div>
       </div>
 
       <!-- TAB: TO DO -->
-      <div id="tab-todo" class="tab-panel hidden">
+      <div id="tab-todo" class="tab-panel panel-grid hidden">
+        <div class="panel-side">
         <div class="card">
           <h3>Aggiungi promemoria</h3>
           <form id="new-todo-form">
@@ -494,6 +586,8 @@
           </form>
         </div>
 
+        </div>
+        <div class="panel-main">
         <div class="card">
           <div class="card-header">
             <h3>Da fare</h3>
@@ -501,10 +595,12 @@
           </div>
           <div id="todo-list"></div>
         </div>
+        </div>
       </div>
 
       <!-- TAB: SUMMARY -->
-      <div id="tab-summary" class="tab-panel hidden">
+      <div id="tab-summary" class="tab-panel panel-grid hidden">
+        <div class="panel-side">
         <div class="card">
           <h3>Modifica viaggio</h3>
           <form id="edit-trip-form">
@@ -544,6 +640,8 @@
           </div>
         </div>
 
+        </div>
+        <div class="panel-main">
         <div class="card">
           <h3>Spese per categoria</h3>
           <div id="category-breakdown"></div>
@@ -564,13 +662,15 @@
           <p class="card-text">Elimina definitivamente il viaggio con tutte le spese, prenotazioni, itinerario e valigie collegate. Non si può annullare.</p>
           <button id="delete-trip-btn" class="danger-btn" style="width:100%;">🗑️ Elimina viaggio</button>
         </div>
+        </div>
       </div>
     </section>
 
     <!-- VIEW: SETTINGS -->
     <section id="view-settings" class="view hidden">
-      <button type="button" id="settings-back" class="secondary-btn" style="width:auto;margin-bottom:14px;">← Indietro</button>
+      <button type="button" id="settings-back" class="secondary-btn back-btn">← Indietro</button>
 
+      <div class="settings-grid">
       <div class="card">
         <h3>Riquadri della Dashboard</h3>
         <p class="card-text">Scegli quali riquadri vedere nella Dashboard di ogni viaggio. La scelta è personale e ti segue su tutti i tuoi dispositivi.</p>
@@ -582,9 +682,44 @@
         <p class="card-text">Le sezioni che scegli compaiono come riquadri riassuntivi in Dashboard: un tocco e ci vai direttamente.</p>
         <div id="settings-favorites"></div>
       </div>
+      </div>
       <p id="settings-status" class="card-sub" style="text-align:center;"></p>
     </section>
   </main>
+
+  <!-- Barra in basso (telefono) -->
+  <nav class="bottom-nav">
+    <button type="button" class="bn-item tab-btn active" data-tab="tab-dashboard"><svg class="ico"><use href="#i-home"/></svg><span>Home</span></button>
+    <button type="button" class="bn-item tab-btn" data-tab="tab-expenses"><svg class="ico"><use href="#i-wallet"/></svg><span>Spese</span></button>
+    <button type="button" class="bn-item tab-btn" data-tab="tab-bookings"><svg class="ico"><use href="#i-ticket"/></svg><span>Prenotazioni</span></button>
+    <button type="button" class="bn-item tab-btn" data-tab="tab-itinerary"><svg class="ico"><use href="#i-route"/></svg><span>Itinerario</span></button>
+    <button type="button" class="bn-item" id="more-btn"><svg class="ico"><use href="#i-dots"/></svg><span>Altro</span></button>
+  </nav>
+
+  <!-- Foglio "Altro" (telefono) -->
+  <div id="more-sheet" class="sheet-overlay hidden">
+    <div class="sheet" role="dialog" aria-label="Altre sezioni">
+      <div class="sheet-handle"></div>
+      <div class="sheet-profile">
+        <span class="avatar"><span class="js-user-initials"></span></span>
+        <span><strong class="js-user-name"></strong><small class="js-user-email"></small></span>
+      </div>
+      <div class="sheet-label trip-only">Viaggio</div>
+      <div class="sheet-grid trip-only">
+        <button type="button" class="sheet-item tab-btn" data-tab="tab-packing"><svg class="ico"><use href="#i-luggage"/></svg><span>Valigia</span></button>
+        <button type="button" class="sheet-item tab-btn" data-tab="tab-jetlag"><svg class="ico"><use href="#i-moon"/></svg><span>Jet Lag</span></button>
+        <button type="button" class="sheet-item tab-btn" data-tab="tab-todo"><svg class="ico"><use href="#i-check"/></svg><span>To Do</span></button>
+        <button type="button" class="sheet-item tab-btn" data-tab="tab-summary"><svg class="ico"><use href="#i-pie"/></svg><span>Riepilogo</span></button>
+      </div>
+      <div class="sheet-label">App</div>
+      <div class="sheet-grid">
+        <button type="button" class="sheet-item" data-nav="trips"><svg class="ico"><use href="#i-globe"/></svg><span>I miei viaggi</span></button>
+        <button type="button" class="sheet-item" data-proxy="settings-btn"><svg class="ico"><use href="#i-sliders"/></svg><span>Impostazioni</span></button>
+        <button type="button" class="sheet-item" data-proxy="theme-toggle"><svg class="ico show-light"><use href="#i-moon"/></svg><svg class="ico show-dark"><use href="#i-sun"/></svg><span>Tema</span></button>
+        <button type="button" class="sheet-item" data-proxy="logout-btn"><svg class="ico"><use href="#i-power"/></svg><span>Esci</span></button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Selezione bandiere del viaggio -->
@@ -636,6 +771,9 @@
 <script src="js/supabaseClient.js"></script>
 <script src="js/theme.js"></script>
 <script src="js/flags.js"></script>
+<script src="js/worldMapData.js"></script>
+<script src="js/worldMap.js"></script>
+<script src="js/nav.js"></script>
 <script src="js/trips.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/customOptions.js"></script>
@@ -662,11 +800,22 @@
     document.getElementById("trip-currency").value = window.APP_CONFIG.DEFAULT_BASE_CURRENCY;
 
     window.switchTab = (tabId) => {
+      // Dalle altre viste (elenco viaggi, impostazioni) si torna al viaggio aperto
+      const detail = document.getElementById("view-trip-detail");
+      if (detail.classList.contains("hidden")) {
+        if (Trips.activeTrip) {
+          document.getElementById("view-trips").classList.add("hidden");
+          document.getElementById("view-settings").classList.add("hidden");
+          detail.classList.remove("hidden");
+        } else if (Trips.lastTrip) {
+          Trips.open(Trips.lastTrip).then(() => window.switchTab(tabId));
+          return;
+        } else return;
+      }
       document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tabId));
       document.querySelectorAll(".tab-panel").forEach(p => p.classList.add("hidden"));
       document.getElementById(tabId).classList.remove("hidden");
-      const activeBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
-      if (activeBtn) activeBtn.scrollIntoView({ inline: "center", block: "nearest" });
+      Nav.sync();
       window.scrollTo({ top: 0, behavior: "smooth" });
     };
     document.querySelectorAll(".tab-btn").forEach(btn => {

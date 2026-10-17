@@ -5,12 +5,12 @@
 // I riquadri da mostrare dipendono dalle preferenze dell'utente.
 // ============================================================
 const MACRO_AREAS = {
-  trasporti: { label: "Trasporti", icon: "✈️", color: "#5AA9E6", categories: ["voli", "trasporti", "auto"] },
-  alloggio: { label: "Alloggio", icon: "🏨", color: "#EE8F45", categories: ["alloggio"] },
-  cibo: { label: "Cibo e bar", icon: "🍽️", color: "#4FBD87", categories: ["colazione", "pranzo", "cena", "bar", "spesa", "cibo"] },
-  attivita: { label: "Attività", icon: "🎟️", color: "#F2C94C", categories: ["escursioni", "intrattenimento", "attivita"] },
-  shopping: { label: "Shopping", icon: "🛍️", color: "#B58DE0", categories: ["shopping", "regali"] },
-  altro: { label: "Altro", icon: "📦", color: "#8FA3B0", categories: [] }
+  trasporti: { label: "Trasporti", icon: "✈️", color: "#3E7C74", categories: ["voli", "trasporti", "auto"] },
+  alloggio: { label: "Alloggio", icon: "🏨", color: "#D4A02A", categories: ["alloggio"] },
+  cibo: { label: "Cibo e bar", icon: "🍽️", color: "#8DB596", categories: ["colazione", "pranzo", "cena", "bar", "spesa", "cibo"] },
+  attivita: { label: "Attività", icon: "🎟️", color: "#C9734A", categories: ["escursioni", "intrattenimento", "attivita"] },
+  shopping: { label: "Shopping", icon: "🛍️", color: "#6E8FA8", categories: ["shopping", "regali"] },
+  altro: { label: "Altro", icon: "📦", color: "#A9B5B1", categories: [] }
 };
 
 function macroAreaOf(category) {
@@ -161,7 +161,7 @@ const Dashboard = {
     return `
       <div class="dash-ring">
         <svg viewBox="0 0 42 42">
-          <circle cx="21" cy="21" r="15.9155" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="5"></circle>
+          <circle class="ring-track" cx="21" cy="21" r="15.9155" fill="none" stroke-width="5"></circle>
           <circle cx="21" cy="21" r="15.9155" fill="none" stroke="${color}" stroke-width="5" stroke-linecap="round"
             stroke-dasharray="${p} ${100 - p}" stroke-dashoffset="25"></circle>
         </svg>
@@ -172,7 +172,7 @@ const Dashboard = {
   donut(segments, total, centerLabel) {
     const R = 15.9155;
     let offset = 25;
-    let circles = `<circle cx="21" cy="21" r="${R}" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="6"></circle>`;
+    let circles = `<circle class="ring-track" cx="21" cy="21" r="${R}" fill="none" stroke-width="6"></circle>`;
     if (total > 0) {
       for (const seg of segments) {
         const pct = seg.value / total * 100;
@@ -227,7 +227,7 @@ const Dashboard = {
     else big = `<div class="dash-sub">Devi a ${escapeHtml(Auth.otherName())}</div><div class="dash-big dash-negative">${escapeHtml(formatMoney(-net, base))}</div>`;
 
     return `
-      <div class="dash-card" data-goto="tab-expenses">
+      <div class="dash-card is-dark" data-goto="tab-expenses">
         <div class="dash-card-title">Bilancio <span class="dash-arrow">›</span></div>
         ${big}
         <div class="dash-divider"></div>
@@ -303,7 +303,7 @@ const Dashboard = {
     const spent = list.reduce((s, e) => s + this.baseAmount(e), 0);
     const pct = spent / budget * 100;
     const over = spent > budget;
-    const color = over ? "var(--negative)" : (pct > 85 ? "#F2C94C" : "var(--positive)");
+    const color = over ? "var(--negative)" : (pct > 85 ? "var(--accent)" : "var(--positive)");
     const days = this.tripDays();
     const today = localISO();
 

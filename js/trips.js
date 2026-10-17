@@ -4,6 +4,8 @@
 const Trips = {
   list: [],
   activeTrip: null,
+  // ultimo viaggio aperto: le voci di navigazione ci riportano lì
+  lastTrip: null,
   autoOpenAttempted: false,
 
   async init() {
@@ -14,8 +16,6 @@ const Trips = {
     document.getElementById("edit-trip-form").addEventListener("submit", (e) => this.saveEdit(e));
     document.getElementById("show-archived-toggle").addEventListener("change", () => this.render());
     document.getElementById("trip-emoji-edit").addEventListener("click", () => this.editEmoji());
-    document.getElementById("trips-carousel-prev").addEventListener("click", () => this.scrollCarouselBy(-1));
-    document.getElementById("trips-carousel-next").addEventListener("click", () => this.scrollCarouselBy(1));
     document.getElementById("trip-flags-btn").addEventListener("click", () => this.pickNewTripFlags());
     document.getElementById("currency-rate-add-btn").addEventListener("click", () => this.addCurrencyRate());
 
@@ -31,6 +31,7 @@ const Trips = {
     const { data, error } = await supabaseClient.from("trips").select("*").order("start_date", { ascending: false });
     if (error) { console.error(error); return; }
     this.list = data;
+    if (this.lastTrip) this.lastTrip = data.find(t => t.id === this.lastTrip.id) || null;
     this.render();
 
     if (!this.autoOpenAttempted) {
@@ -46,77 +47,48 @@ const Trips = {
   },
 
   render() {
+    WorldMap.update();
     const showArchived = document.getElementById("show-archived-toggle").checked;
     const container = document.getElementById("trips-list");
-    const nav = document.getElementById("trips-carousel-nav");
-    const dotsWrap = document.getElementById("trips-carousel-dots");
     container.innerHTML = "";
-    dotsWrap.innerHTML = "";
 
     const filtered = this.list.filter(t => showArchived ? t.archived : !t.archived);
+    document.getElementById("trips-count").textContent = filtered.length ? `(${filtered.length})` : "";
 
     if (filtered.length === 0) {
       container.innerHTML = `<p class="empty-state">${showArchived ? "Nessun viaggio archiviato." : "Nessun viaggio ancora. Creane uno qui sotto!"}</p>`;
-      nav.classList.add("hidden");
       return;
     }
 
-    nav.classList.toggle("hidden", filtered.length < 2);
-
-    const gradients = TRIP_CARD_GRADIENTS;
-    filtered.forEach((trip, idx) => {
+    for (const trip of filtered) {
+      const status = tripStatus(trip);
+      const days = trip.start_date && trip.end_date ? daysBetween(trip.start_date, trip.end_date) + 1 : 0;
       const card = document.createElement("button");
-      card.className = "trip-hero-card";
-      card.style.background = gradients[idx % gradients.length];
+      card.type = "button";
+      card.className = `trip-ticket ${status.cls}`;
       card.innerHTML = `
-        <span class="trip-hero-emoji">${renderTripIcon(trip.emoji)}</span>
-        <span class="trip-hero-info">
+        <span class="ticket-flags">${renderTripIcon(trip.emoji)}</span>
+        <span class="ticket-info">
           <strong>${escapeHtml(trip.name)}</strong>
-          <span>${escapeHtml(trip.destination || "")}</span>
-          ${trip.start_date ? `<small>${escapeHtml(formatDate(trip.start_date))}${trip.end_date ? " – " + escapeHtml(formatDate(trip.end_date)) : ""}</small>` : ""}
+          ${trip.destination ? `<small>${escapeHtml(trip.destination)}</small>` : ""}
+        </span>
+        <span class="ticket-route">
+          ${ticketDate(trip.start_date, "Partenza")}
+          <span class="ticket-mid">
+            <small>${days ? "Durata" : "&nbsp;"}</small>
+            <b>${days ? `${days} ${days === 1 ? "giorno" : "giorni"}` : "—"}</b>
+            <i class="ticket-line"></i>
+          </span>
+          ${ticketDate(trip.end_date, "Ritorno")}
+        </span>
+        <span class="ticket-side">
+          <span class="ticket-status">${escapeHtml(status.label)}</span>
+          <span class="ticket-cta">Apri</span>
         </span>
       `;
       card.addEventListener("click", () => this.open(trip));
       container.appendChild(card);
-
-      const dot = document.createElement("span");
-      dot.className = "carousel-dot" + (idx === 0 ? " active" : "");
-      dot.addEventListener("click", () => this.scrollCarouselTo(idx));
-      dotsWrap.appendChild(dot);
-    });
-
-    let scrollTimer = null;
-    container.onscroll = () => {
-      clearTimeout(scrollTimer);
-      scrollTimer = setTimeout(() => this.updateActiveDot(), 100);
-    };
-  },
-
-  scrollCarouselBy(direction) {
-    const container = document.getElementById("trips-list");
-    const dots = document.querySelectorAll("#trips-carousel-dots .carousel-dot");
-    const activeIdx = [...dots].findIndex(d => d.classList.contains("active"));
-    const nextIdx = Math.max(0, Math.min(container.children.length - 1, (activeIdx === -1 ? 0 : activeIdx) + direction));
-    this.scrollCarouselTo(nextIdx);
-  },
-
-  scrollCarouselTo(idx) {
-    const container = document.getElementById("trips-list");
-    const card = container.children[idx];
-    if (card) card.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-  },
-
-  updateActiveDot() {
-    const container = document.getElementById("trips-list");
-    const dots = document.querySelectorAll("#trips-carousel-dots .carousel-dot");
-    if (dots.length === 0) return;
-    const containerCenter = container.scrollLeft + container.clientWidth / 2;
-    let closestIdx = 0, closestDist = Infinity;
-    [...container.children].forEach((card, idx) => {
-      const dist = Math.abs((card.offsetLeft + card.offsetWidth / 2) - containerCenter);
-      if (dist < closestDist) { closestDist = dist; closestIdx = idx; }
-    });
-    dots.forEach((d, i) => d.classList.toggle("active", i === closestIdx));
+    }
   },
 
   async create(e) {
@@ -144,10 +116,13 @@ const Trips = {
 
   async open(trip) {
     this.activeTrip = trip;
+    this.lastTrip = trip;
+    document.getElementById("view-settings").classList.add("hidden");
     document.getElementById("view-trips").classList.add("hidden");
     document.getElementById("view-trip-detail").classList.remove("hidden");
     document.getElementById("trip-emoji-edit").innerHTML = renderTripIcon(trip.emoji);
     document.getElementById("trip-detail-title").textContent = trip.name;
+    Nav.renderTripHero(trip);
     document.getElementById("archive-trip-btn").textContent = trip.archived ? "Riattiva viaggio" : "Archivia viaggio";
 
     document.getElementById("edit-trip-name").value = trip.name || "";
@@ -201,6 +176,8 @@ const Trips = {
     trip.end_date = end_date;
     trip.base_currency = base_currency;
     document.getElementById("trip-detail-title").textContent = name;
+    Nav.renderTripHero(trip);
+    Nav.sync();
     await this.load();
   },
 
@@ -217,6 +194,8 @@ const Trips = {
     const { error } = await supabaseClient.from("trips").delete().eq("id", trip.id);
     if (error) { alert("Errore eliminazione viaggio: " + error.message); return; }
     this.showList();
+    this.lastTrip = null;
+    Nav.sync();
   },
 
   async pickNewTripFlags() {
@@ -236,6 +215,7 @@ const Trips = {
 
     trip.emoji = emoji;
     document.getElementById("trip-emoji-edit").innerHTML = renderTripIcon(emoji);
+    Nav.sync();
 
     const { error } = await supabaseClient.from("trips").update({ emoji }).eq("id", trip.id);
     if (error) alert(error.message);
@@ -318,11 +298,24 @@ function formatMoney(amount, currency) {
   }
 }
 
-// Gradienti alternati per le card viaggio nel carosello, stessa palette
-// navy/arancio dell'app
-const TRIP_CARD_GRADIENTS = [
-  "linear-gradient(135deg, #16283A 0%, #1F3245 100%)",
-  "linear-gradient(135deg, #D97324 0%, #EE8F45 100%)",
-  "linear-gradient(135deg, #10233F 0%, #2C4A6E 100%)",
-  "linear-gradient(135deg, #7A3B1E 0%, #B85412 100%)"
-];
+// Stato del viaggio rispetto a oggi (per biglietti e intestazione)
+function tripStatus(trip) {
+  if (!trip.start_date) return { label: "Senza date", cls: "" };
+  const today = localISO();
+  const end = trip.end_date || trip.start_date;
+  if (today < trip.start_date) {
+    const d = daysBetween(today, trip.start_date);
+    return { label: d === 1 ? "Domani" : `Tra ${d} giorni`, cls: "is-upcoming" };
+  }
+  if (today <= end) return { label: `In corso · giorno ${daysBetween(trip.start_date, today) + 1}`, cls: "is-live" };
+  return { label: "Concluso", cls: "is-past" };
+}
+
+// Data in stile biglietto: giorno grande, mese e anno sotto
+function ticketDate(iso, label) {
+  if (!iso) return `<span class="ticket-date"><small>${label}</small><b>—</b><small>&nbsp;</small></span>`;
+  const d = new Date(iso + "T00:00:00");
+  const day = d.toLocaleDateString("it-IT", { day: "2-digit" });
+  const month = d.toLocaleDateString("it-IT", { month: "short" }).replace(".", "");
+  return `<span class="ticket-date"><small>${label}</small><b>${day} ${escapeHtml(month)}</b><small>${d.getFullYear()}</small></span>`;
+}
