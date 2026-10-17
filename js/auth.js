@@ -80,8 +80,11 @@ const Auth = {
 
   otherName() {
     if (!this.currentUser) return "";
+    // L'altra persona è quella che condivide il tuo spazio (vedi SPACES)
+    const me = this.currentUser.email.toLowerCase();
+    const spaces = window.APP_CONFIG.SPACES;
     const otherEmail = window.APP_CONFIG.ALLOWED_EMAILS.find(
-      e => e.toLowerCase() !== this.currentUser.email.toLowerCase()
+      e => e.toLowerCase() !== me && spaces[e.toLowerCase()] === spaces[me]
     );
     return (otherEmail && window.APP_CONFIG.USER_NAMES[otherEmail]) || "l'altra persona";
   },

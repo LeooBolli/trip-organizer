@@ -11,13 +11,23 @@ window.APP_CONFIG = {
   // (ed essere stato invitato su Supabase Auth) non entra.
   ALLOWED_EMAILS: [
     "leonardobolli@gmail.com",
-    "biagettimariachiara@gmail.com"
+    "biagettimariachiara@gmail.com",
+    "23leo07@gmail.com"
   ],
+
+  // Chi condivide i viaggi: ognuno vede solo quelli del proprio spazio.
+  // Stesse email di public.pdtravel_space() in supabase/schema.sql.
+  SPACES: {
+    "leonardobolli@gmail.com": "coppia",
+    "biagettimariachiara@gmail.com": "coppia",
+    "23leo07@gmail.com": "prova" // account di prova, vuoto: per far vedere l'app
+  },
 
   // Nome mostrato al posto dell'email (es. "Connesso come Leonardo")
   USER_NAMES: {
     "leonardobolli@gmail.com": "Leonardo",
-    "biagettimariachiara@gmail.com": "Chiara"
+    "biagettimariachiara@gmail.com": "Chiara",
+    "23leo07@gmail.com": "Ospite"
   },
 
   DEFAULT_BASE_CURRENCY: "EUR",
