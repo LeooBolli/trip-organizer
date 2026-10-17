@@ -1066,59 +1066,106 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
 }
 .is-past .ticket-flags, .is-past .ticket-info { opacity: 0.75; }
 
-/* Nuovo viaggio: pulsanti sempre in vista + finestra con il modulo */
-.section-actions { display: flex; align-items: center; gap: 8px; }
-.new-trip-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 11px 18px;
-  white-space: nowrap;
-}
-.new-trip-btn span, .side-new-trip span { font-size: 1.15rem; line-height: 1; font-weight: 500; }
-.side-new-trip {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin: 0 18px 14px 0;
-  padding: 12px 16px;
-  border: none;
-  border-radius: 999px;
-  background: var(--accent);
-  color: var(--accent-contrast);
-  font: inherit;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  cursor: pointer;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
-  transition: background 0.15s ease;
-}
-.side-new-trip:hover { background: var(--accent-dark); }
-.empty-trips {
+/* Nuovo viaggio: modulo compatto sempre aperto, campi a pillola */
+.trips-results { container: results / inline-size; }
+.section-head h2 { white-space: nowrap; }
+.quick-trip {
+  display: block;
   background: var(--surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: 30px 20px;
-  text-align: center;
+  padding: 18px;
+  margin-bottom: 22px;
+}
+.qt-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 4px 12px; }
+.qt-status { font-size: 0.8rem; font-weight: 500; color: var(--positive); }
+.qt-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    "name name"
+    "dest dest"
+    "start end"
+    "flags cur"
+    "btn btn";
+  gap: 10px;
+}
+.qf-name { grid-area: name; }
+.qf-dest { grid-area: dest; }
+.qf-flags { grid-area: flags; }
+.qf-start { grid-area: start; }
+.qf-end { grid-area: end; }
+.qf-cur { grid-area: cur; }
+.qt-submit { grid-area: btn; min-height: 52px; }
+
+.qf {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 56px;
+  margin: 0;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1.5px solid transparent;
+  background: var(--surface-alt);
+  color: var(--text);
+  letter-spacing: 0;
+  text-transform: none;
+  cursor: text;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+.qf:focus-within { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 4px var(--accent-light); }
+.qf > .ico { color: var(--teal); }
+.ico-fill { fill: currentColor; stroke: none; }
+.qf > span { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.qf small {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--text-muted);
 }
-.empty-trips p { margin: 0 0 16px; }
-.new-trip-modal { max-width: 520px; min-width: 0; }
-.section-head h2 { white-space: nowrap; }
-
-/* Telefono: "Nuovo viaggio" a tutta larghezza sotto il titolo */
-@media (max-width: 639px) {
-  .section-head { flex-wrap: wrap; }
-  .section-actions { display: contents; }
-  .section-head h2 { flex: 1; }
-  .new-trip-btn { order: 3; flex: 1 0 100%; justify-content: center; padding: 14px 18px; }
+.qf input, .qf select {
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  min-width: 0;
+  width: 100%;
 }
-.new-trip-body { padding: 18px 20px 22px; overflow-y: auto; }
+.qf input:focus, .qf select:focus { box-shadow: none; background: none; }
+.qf select { appearance: none; -webkit-appearance: none; cursor: pointer; text-overflow: ellipsis; }
+.qf-flags {
+  justify-content: center;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 500;
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.qf-flags:hover { border-color: var(--accent); }
 
-/* Telefono: prima l'elenco dei viaggi (con il pulsante), poi la mappa */
+/* Colonna larga: due righe come la barra di ricerca del riferimento */
+@container results (min-width: 560px) {
+  .qt-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-areas:
+      "name name dest dest"
+      "start end flags cur"
+      "btn btn btn btn";
+  }
+  .qf { padding: 8px 14px; gap: 8px; }
+  .qf-start > .ico, .qf-end > .ico { display: none; }
+  .qf input[type="date"] { font-size: 0.86rem; }
+}
+
+/* Telefono: prima il modulo e l'elenco dei viaggi, poi la mappa */
 .trips-results { order: 1; }
 .map-panel { order: 2; }
 

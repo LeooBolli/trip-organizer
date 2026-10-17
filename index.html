@@ -42,7 +42,6 @@
   <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
   <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.5V12l3 2"/></symbol>
   <symbol id="i-coins" viewBox="0 0 24 24"><circle cx="9.5" cy="9.5" r="5.8"/><path d="M14.6 7.6a5.8 5.8 0 1 1-7 7"/></symbol>
-  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m7 9.5 5 5 5-5"/></symbol>
   <symbol id="i-plane" viewBox="0 0 24 24"><path d="M21 15.5v-1.8l-7.5-4.5V4a1.5 1.5 0 0 0-3 0v5.2L3 13.7v1.8l7.5-2.3v4.6l-2 1.5V21l3.5-1 3.5 1v-1.7l-2-1.5v-4.6z"/></symbol>
 </svg>
@@ -73,7 +72,6 @@
     </div>
 
     <nav class="side-nav">
-      <button type="button" class="side-new-trip" data-new-trip><span aria-hidden="true">+</span> Nuovo viaggio</button>
       <button type="button" class="nav-item" data-nav="trips"><svg class="ico"><use href="#i-globe"/></svg><span>I miei viaggi</span></button>
       <div class="side-label trip-only" id="side-trip-label"></div>
       <button type="button" class="nav-item tab-btn trip-only active" data-tab="tab-dashboard"><svg class="ico"><use href="#i-home"/></svg><span>Dashboard</span></button>
@@ -149,14 +147,43 @@
         </div>
 
         <div class="trips-results">
+        <form id="new-trip-form" class="quick-trip" autocomplete="off">
+          <div class="qt-head">
+            <span class="eyebrow">Nuovo viaggio</span>
+            <span id="new-trip-status" class="qt-status" role="status"></span>
+          </div>
+          <div class="qt-grid">
+            <label class="qf qf-name">
+              <svg class="ico ico-sm ico-fill"><use href="#i-plane"/></svg>
+              <span><small>Nome</small><input type="text" id="trip-name" placeholder="Es. Giappone 2026" required></span>
+            </label>
+            <label class="qf qf-dest">
+              <svg class="ico ico-sm"><use href="#i-pin"/></svg>
+              <span><small>Destinazione</small><input type="text" id="trip-destination" placeholder="Es. Tokyo, Kyoto"></span>
+            </label>
+            <input type="hidden" id="trip-emoji">
+            <button type="button" id="trip-flags-btn" class="qf qf-flags">🏳️ Bandiere</button>
+            <label class="qf qf-start">
+              <svg class="ico ico-sm"><use href="#i-calendar"/></svg>
+              <span><small>Partenza</small><input type="date" id="trip-start"></span>
+            </label>
+            <label class="qf qf-end">
+              <svg class="ico ico-sm"><use href="#i-calendar"/></svg>
+              <span><small>Ritorno</small><input type="date" id="trip-end"></span>
+            </label>
+            <label class="qf qf-cur">
+              <svg class="ico ico-sm"><use href="#i-coins"/></svg>
+              <span><small>Valuta</small><select id="trip-currency"></select></span>
+            </label>
+            <button type="submit" class="qt-submit">Crea viaggio</button>
+          </div>
+        </form>
+
           <div class="section-head">
             <h2>Viaggi <span id="trips-count"></span></h2>
-            <div class="section-actions">
-              <label class="pill-toggle">
-                <input type="checkbox" id="show-archived-toggle"> Archiviati
-              </label>
-              <button type="button" class="primary-btn new-trip-btn" data-new-trip><span aria-hidden="true">+</span> Nuovo viaggio</button>
-            </div>
+            <label class="pill-toggle">
+              <input type="checkbox" id="show-archived-toggle"> Archiviati
+            </label>
           </div>
           <div id="trips-list" class="trips-list"></div>
         </div>
@@ -689,46 +716,6 @@
   </nav>
 
 
-  <!-- Nuovo viaggio (finestra) -->
-  <div id="new-trip-overlay" class="modal-overlay hidden">
-    <div class="modal-preview new-trip-modal" role="dialog" aria-labelledby="new-trip-title">
-      <div class="modal-preview-header">
-        <strong id="new-trip-title">Nuovo viaggio</strong>
-        <button type="button" id="new-trip-close" class="icon-btn" title="Chiudi">✕</button>
-      </div>
-      <div class="new-trip-body">
-          <form id="new-trip-form" class="form-grid">
-            <div class="span-2">
-              <label>Nome viaggio</label>
-              <input type="text" id="trip-name" placeholder="Es. Giappone 2026" required>
-            </div>
-            <div class="span-2">
-              <label>Destinazione</label>
-              <input type="text" id="trip-destination" placeholder="Es. Tokyo, Kyoto">
-            </div>
-            <div class="span-2">
-              <label>Bandiere del viaggio</label>
-              <input type="hidden" id="trip-emoji">
-              <button type="button" id="trip-flags-btn" class="secondary-btn">🏳️ Scegli una o più bandiere</button>
-            </div>
-            <div>
-              <label>Data inizio</label>
-              <input type="date" id="trip-start">
-            </div>
-            <div>
-              <label>Data fine</label>
-              <input type="date" id="trip-end">
-            </div>
-            <div class="span-2">
-              <label>Valuta base</label>
-              <select id="trip-currency"></select>
-            </div>
-            <button type="submit" class="span-2">Crea viaggio</button>
-          </form>
-      </div>
-    </div>
-  </div>
-
   <!-- Foglio "Altro" (telefono) -->
   <div id="more-sheet" class="sheet-overlay hidden">
     <div class="sheet" role="dialog" aria-label="Altre sezioni">
@@ -746,7 +733,6 @@
       </div>
       <div class="sheet-label">App</div>
       <div class="sheet-grid">
-        <button type="button" class="sheet-item" data-new-trip><svg class="ico"><use href="#i-plus"/></svg><span>Nuovo viaggio</span></button>
         <button type="button" class="sheet-item" data-nav="trips"><svg class="ico"><use href="#i-globe"/></svg><span>I miei viaggi</span></button>
         <button type="button" class="sheet-item" data-proxy="settings-btn"><svg class="ico"><use href="#i-sliders"/></svg><span>Impostazioni</span></button>
         <button type="button" class="sheet-item" data-proxy="theme-toggle"><svg class="ico show-light"><use href="#i-moon"/></svg><svg class="ico show-dark"><use href="#i-sun"/></svg><span>Tema</span></button>

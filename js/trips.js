@@ -58,7 +58,7 @@ const Trips = {
     if (filtered.length === 0) {
       container.innerHTML = showArchived
         ? `<p class="empty-state">Nessun viaggio archiviato.</p>`
-        : `<div class="empty-trips"><p>Nessun viaggio ancora.</p><button type="button" class="primary-btn" onclick="Nav.openNewTrip()">+ Crea il primo viaggio</button></div>`;
+        : `<p class="empty-state">Nessun viaggio ancora: crea il primo qui sopra.</p>`;
       return;
     }
 
@@ -104,22 +104,21 @@ const Trips = {
 
     if (!name) return;
 
-    const { data: created, error } = await supabaseClient.from("trips").insert({
+    const { error } = await supabaseClient.from("trips").insert({
       name, destination, start_date, end_date, base_currency, emoji,
       created_by: Auth.currentUser.id
-    }).select().single();
+    });
 
     if (error) { alert("Errore creazione viaggio: " + error.message); return; }
     e.target.reset();
     document.getElementById("trip-emoji").value = "";
-    document.getElementById("trip-flags-btn").textContent = "🏳️ Scegli una o più bandiere";
+    document.getElementById("trip-flags-btn").textContent = "🏳️ Bandiere";
     document.getElementById("trip-currency").value = window.APP_CONFIG.DEFAULT_BASE_CURRENCY;
-    Nav.closeNewTrip();
-    // il viaggio appena creato si apre subito
-    if (created) {
-      if (!this.list.some(t => t.id === created.id)) this.list.unshift(created);
-      this.open(created);
-    }
+    const status = document.getElementById("new-trip-status");
+    status.textContent = `✓ "${name}" creato`;
+    clearTimeout(this.statusTimer);
+    this.statusTimer = setTimeout(() => { status.textContent = ""; }, 4000);
+    await this.load();
   },
 
   async open(trip) {
@@ -211,7 +210,7 @@ const Trips = {
     const result = await FlagPicker.open(hidden.value);
     if (result === null) return;
     hidden.value = result;
-    document.getElementById("trip-flags-btn").textContent = result || "🏳️ Scegli una o più bandiere";
+    document.getElementById("trip-flags-btn").textContent = result || "🏳️ Bandiere";
   },
 
   async editEmoji() {
