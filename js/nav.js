@@ -15,6 +15,12 @@ const Nav = {
     document.getElementById("topbar-avatar").addEventListener("click", () => this.openSheet());
     document.getElementById("more-btn").addEventListener("click", () => this.openSheet());
 
+    document.querySelectorAll("[data-new-trip]").forEach(btn =>
+      btn.addEventListener("click", () => { this.closeSheet(); this.openNewTrip(); }));
+    const newTrip = document.getElementById("new-trip-overlay");
+    document.getElementById("new-trip-close").addEventListener("click", () => this.closeNewTrip());
+    newTrip.addEventListener("click", (e) => { if (e.target === newTrip) this.closeNewTrip(); });
+
     const sheet = document.getElementById("more-sheet");
     sheet.addEventListener("click", (e) => {
       if (e.target === sheet) { this.closeSheet(); return; }
@@ -27,7 +33,11 @@ const Nav = {
         this.closeSheet();
       }
     });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") this.closeSheet(); });
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      this.closeSheet();
+      if (document.getElementById("flag-picker-overlay").classList.contains("hidden")) this.closeNewTrip();
+    });
 
     this.sync();
   },
@@ -37,6 +47,12 @@ const Nav = {
     Trips.showList();
     window.scrollTo({ top: 0 });
   },
+
+  openNewTrip() {
+    document.getElementById("new-trip-overlay").classList.remove("hidden");
+    setTimeout(() => document.getElementById("trip-name").focus(), 50);
+  },
+  closeNewTrip() { document.getElementById("new-trip-overlay").classList.add("hidden"); },
 
   openSheet() { document.getElementById("more-sheet").classList.remove("hidden"); },
   closeSheet() { document.getElementById("more-sheet").classList.add("hidden"); },

@@ -668,7 +668,9 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
   font-size: 0.9rem;
 }
 
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.form-grid input { min-width: 0; }
+.form-grid input[type="date"] { padding-left: 12px; padding-right: 10px; }
 .form-grid > div { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .form-grid > div > label { margin-bottom: 0; }
 .span-2 { grid-column: 1 / -1; }
@@ -1064,7 +1066,61 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
 }
 .is-past .ticket-flags, .is-past .ticket-info { opacity: 0.75; }
 
-.new-trip-card { margin-bottom: 0; }
+/* Nuovo viaggio: pulsanti sempre in vista + finestra con il modulo */
+.section-actions { display: flex; align-items: center; gap: 8px; }
+.new-trip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 18px;
+  white-space: nowrap;
+}
+.new-trip-btn span, .side-new-trip span { font-size: 1.15rem; line-height: 1; font-weight: 500; }
+.side-new-trip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 18px 14px 0;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+  transition: background 0.15s ease;
+}
+.side-new-trip:hover { background: var(--accent-dark); }
+.empty-trips {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 30px 20px;
+  text-align: center;
+  color: var(--text-muted);
+}
+.empty-trips p { margin: 0 0 16px; }
+.new-trip-modal { max-width: 520px; min-width: 0; }
+.section-head h2 { white-space: nowrap; }
+
+/* Telefono: "Nuovo viaggio" a tutta larghezza sotto il titolo */
+@media (max-width: 639px) {
+  .section-head { flex-wrap: wrap; }
+  .section-actions { display: contents; }
+  .section-head h2 { flex: 1; }
+  .new-trip-btn { order: 3; flex: 1 0 100%; justify-content: center; padding: 14px 18px; }
+}
+.new-trip-body { padding: 18px 20px 22px; overflow-y: auto; }
+
+/* Telefono: prima l'elenco dei viaggi (con il pulsante), poi la mappa */
+.trips-results { order: 1; }
+.map-panel { order: 2; }
 
 /* ============================================================
    INTESTAZIONE DEL VIAGGIO
@@ -1964,16 +2020,12 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
   .trips-layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 380px;
-    grid-template-areas:
-      "results map"
-      "results new";
-    grid-template-rows: auto 1fr;
+    grid-template-areas: "results map";
     gap: 24px 28px;
     align-items: start;
   }
   .map-panel { grid-area: map; }
   .trips-results { grid-area: results; }
-  .new-trip-card { grid-area: new; }
   .section-head { margin-top: 0; }
 }
 

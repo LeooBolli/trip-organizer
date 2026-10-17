@@ -56,7 +56,9 @@ const Trips = {
     document.getElementById("trips-count").textContent = filtered.length ? `(${filtered.length})` : "";
 
     if (filtered.length === 0) {
-      container.innerHTML = `<p class="empty-state">${showArchived ? "Nessun viaggio archiviato." : "Nessun viaggio ancora. Creane uno qui sotto!"}</p>`;
+      container.innerHTML = showArchived
+        ? `<p class="empty-state">Nessun viaggio archiviato.</p>`
+        : `<div class="empty-trips"><p>Nessun viaggio ancora.</p><button type="button" class="primary-btn" onclick="Nav.openNewTrip()">+ Crea il primo viaggio</button></div>`;
       return;
     }
 
@@ -102,16 +104,22 @@ const Trips = {
 
     if (!name) return;
 
-    const { error } = await supabaseClient.from("trips").insert({
+    const { data: created, error } = await supabaseClient.from("trips").insert({
       name, destination, start_date, end_date, base_currency, emoji,
       created_by: Auth.currentUser.id
-    });
+    }).select().single();
 
     if (error) { alert("Errore creazione viaggio: " + error.message); return; }
     e.target.reset();
     document.getElementById("trip-emoji").value = "";
     document.getElementById("trip-flags-btn").textContent = "🏳️ Scegli una o più bandiere";
     document.getElementById("trip-currency").value = window.APP_CONFIG.DEFAULT_BASE_CURRENCY;
+    Nav.closeNewTrip();
+    // il viaggio appena creato si apre subito
+    if (created) {
+      if (!this.list.some(t => t.id === created.id)) this.list.unshift(created);
+      this.open(created);
+    }
   },
 
   async open(trip) {
