@@ -716,6 +716,8 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
 
 /* Pannello scuro con la mappa */
 .map-panel {
+  --map-visited: #D4A02A;
+  --map-next: #3BB79C;
   background: var(--surface-dark);
   color: var(--text-on-dark);
   border-radius: var(--radius);
@@ -723,32 +725,155 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
   padding: 20px 20px 18px;
 }
 .map-panel .eyebrow { color: var(--accent); }
-.map-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
-.map-legend { display: flex; align-items: center; gap: 6px; font-size: 0.7rem; color: var(--text-muted-on-dark); }
-.map-legend i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-.map-legend i + i, .map-legend .lg-planned { margin-left: 6px; }
-.lg-visited { background: var(--accent); }
-.lg-planned { background: var(--map-planned); }
+.map-panel-head { margin-bottom: 10px; }
+.map-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.72rem; color: var(--text-muted-on-dark); margin-bottom: 14px; }
+.map-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.map-legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.lg-visited { background: var(--map-visited); box-shadow: 0 0 6px var(--map-visited); }
+.lg-next { background: var(--map-next); box-shadow: 0 0 6px var(--map-next); }
+.lg-planned { border: 1.5px solid var(--map-visited); }
+
+.map-next {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin-top: 14px;
+  font-size: 0.78rem;
+  color: var(--text-muted-on-dark);
+}
+.map-next:empty { display: none; }
+.map-next i { width: 9px; height: 9px; border-radius: 50%; background: var(--map-next); }
+.map-next span { font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; }
+.map-next button {
+  border: none;
+  background: rgba(59, 183, 156, 0.18);
+  color: var(--text-on-dark);
+  font: inherit;
+  font-weight: 500;
+  font-size: 0.8rem;
+  padding: 5px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.map-next small { color: var(--map-next); }
 
 .map-stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  margin-top: 14px;
-  padding-top: 14px;
+  grid-template-columns: repeat(4, 1fr);
+  margin-top: 16px;
+  padding-top: 16px;
   border-top: 1px dashed var(--border-on-dark);
   text-align: center;
 }
-.map-stats > div { display: flex; flex-direction: column; }
+.map-stats > div { display: flex; flex-direction: column; min-width: 0; }
 .map-stats > div + div { border-left: 1px solid var(--border-on-dark); }
-.map-stats b { font-size: 1.5rem; font-weight: 600; line-height: 1.2; }
-.map-stats small {
-  font-size: 0.64rem;
-  letter-spacing: 0.1em;
+.map-stats b { font-size: 1.4rem; font-weight: 600; line-height: 1.2; }
+.map-stats b small { font-size: 0.8rem; color: var(--text-muted-on-dark); font-weight: 500; }
+.map-stats > div > small {
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-muted-on-dark);
 }
-.map-planned { text-align: center; font-size: 0.75rem; color: var(--accent); margin-top: 8px; }
-.map-planned:empty { display: none; }
+
+.map-block { margin-top: 18px; }
+.map-block-title {
+  display: block;
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+/* Continenti */
+.wm-conts { display: flex; flex-wrap: wrap; gap: 6px; }
+.wm-cont {
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--border-on-dark);
+  color: var(--text-muted-on-dark);
+  font-size: 0.74rem;
+}
+.wm-cont.is-on { background: var(--map-visited); border-color: var(--map-visited); color: #2B3A36; font-weight: 500; }
+.wm-cont b { font-weight: 600; margin-left: 2px; }
+
+/* Anni in viaggio: barre sottili, una per anno */
+.wm-years-chart {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  height: 104px;
+  border-bottom: 1px solid var(--border-on-dark);
+}
+.wm-year {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-muted-on-dark);
+  font: inherit;
+  cursor: pointer;
+  position: relative;
+}
+.wm-year.is-empty { cursor: default; }
+.wm-year-val { font-size: 0.66rem; font-weight: 600; color: var(--text-on-dark); line-height: 1; }
+.wm-year-bar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 16px;
+  max-height: 70px;
+  border-radius: 4px 4px 0 0;
+  background: var(--map-visited);
+  overflow: hidden;
+  transition: opacity 0.15s ease;
+}
+.wm-year-bar .is-future { display: block; width: 100%; background: var(--surface-dark); box-shadow: inset 0 0 0 1.5px var(--map-visited); border-radius: 4px 4px 0 0; }
+.wm-year:not(.is-sel):not(.is-empty) .wm-year-bar { opacity: 0.55; }
+.wm-year:hover .wm-year-bar { opacity: 1; }
+.wm-year-lbl { position: absolute; bottom: -18px; font-size: 0.6rem; }
+.wm-year.is-sel .wm-year-lbl { color: var(--text-on-dark); font-weight: 600; }
+.wm-years-detail { margin-top: 26px; font-size: 0.8rem; color: var(--text-muted-on-dark); }
+.wm-years-detail b { color: var(--text-on-dark); }
+.wm-years-flags { display: block; margin-top: 4px; font-size: 1.1rem; letter-spacing: 2px; }
+
+/* Bandiere dei paesi visitati */
+.wm-flags { display: flex; flex-wrap: wrap; gap: 6px; }
+.wm-flag {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.07);
+  font-size: 1.45rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.wm-flag:hover { background: rgba(255, 255, 255, 0.14); }
+.wm-flag.is-sel { background: var(--map-visited); }
+.wm-flag-add {
+  height: 40px;
+  padding: 0 14px;
+  border: 1.5px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  background: none;
+  color: var(--text-on-dark);
+  font: inherit;
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+.wm-flag-add:hover { border-color: var(--accent); color: var(--accent); }
 
 .world-map-caption {
   margin-top: 14px;
@@ -757,11 +882,13 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
   background: rgba(255, 255, 255, 0.07);
   font-size: 0.82rem;
 }
-.wm-hint { color: var(--text-muted-on-dark); }
+.wm-hint { color: var(--text-muted-on-dark); font-size: 0.8rem; margin: 0; }
 .wm-country { display: flex; align-items: center; gap: 12px; }
 .wm-country-flag { font-size: 2rem; line-height: 1; }
 .wm-country > span:last-child { display: flex; flex-direction: column; }
-.wm-country small { color: var(--accent); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.wm-country small { color: var(--text-muted-on-dark); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.wm-country small.is-visited, .wm-country small.is-planned { color: var(--map-visited); }
+.wm-country small.is-next { color: var(--map-next); }
 .wm-trips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .wm-trip {
   border: none;
@@ -778,15 +905,14 @@ button[type="submit"]:active, .primary-btn:active { transform: scale(0.98); }
 .world-map { display: block; }
 .wm-svg { display: block; width: 100%; height: auto; overflow: visible; }
 .wm-c circle { fill: var(--map-land); transition: fill 0.15s ease; }
-.wm-c.is-planned circle { fill: var(--map-planned); }
-.wm-c.is-visited circle { fill: var(--accent); }
+.wm-c.is-visited circle { fill: var(--map-visited, var(--accent)); }
+.wm-c.is-next circle { fill: var(--map-next, #3BB79C); }
+.wm-c.is-planned circle { fill: none; stroke: var(--map-visited, var(--accent)); stroke-width: 0.14; }
 #trips-world-map .wm-c { cursor: pointer; }
 #trips-world-map .wm-c:hover circle { fill: rgba(255, 255, 255, 0.55); }
-#trips-world-map .wm-c.is-visited:hover circle { fill: var(--accent-dark); }
+#trips-world-map .wm-c.is-visited:hover circle,
+#trips-world-map .wm-c.is-next:hover circle { fill: #fff; }
 #trips-world-map .wm-c.is-selected circle { fill: #fff; }
-.wm-pin { fill: none; stroke: var(--accent); stroke-width: 0.32; pointer-events: none; }
-.wm-pin.is-planned { stroke: var(--map-planned); stroke-dasharray: 0.7 0.5; }
-.world-map-mini .wm-pin { stroke-width: 0.45; }
 .login-map .wm-c circle { fill: rgba(255, 255, 255, 0.18); }
 
 /* Biglietti dei viaggi (come le righe dei voli) */

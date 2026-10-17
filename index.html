@@ -115,16 +115,35 @@
         <div class="map-panel">
           <div class="map-panel-head">
             <span class="eyebrow">I miei posti</span>
-            <span class="map-legend"><i class="lg-visited"></i>Visitati <i class="lg-planned"></i>In programma</span>
+          </div>
+          <div class="map-legend">
+            <span><i class="lg-visited"></i>Visitati</span>
+            <span><i class="lg-next"></i>Prossimo viaggio</span>
+            <span><i class="lg-planned"></i>In programma</span>
           </div>
           <div id="trips-world-map" class="world-map"></div>
+          <div id="map-next" class="map-next"></div>
+          <div id="world-map-caption" class="world-map-caption hidden"></div>
+
           <div class="map-stats">
             <div><b id="map-stat-countries">0</b><small>Paesi</small></div>
+            <div><b id="map-stat-continents">0</b><small>Continenti</small></div>
             <div><b id="map-stat-world">0%</b><small>del mondo</small></div>
             <div><b id="map-stat-trips">0</b><small>Viaggi fatti</small></div>
           </div>
-          <div id="map-stat-planned" class="map-planned"></div>
-          <div id="world-map-caption" class="world-map-caption"></div>
+
+          <div class="map-block">
+            <span class="map-block-title">Continenti</span>
+            <div id="map-continents" class="wm-conts"></div>
+          </div>
+          <div class="map-block">
+            <span class="map-block-title">Anni in viaggio</span>
+            <div id="map-years"></div>
+          </div>
+          <div class="map-block">
+            <span class="map-block-title">Bandiere</span>
+            <div id="map-flags" class="wm-flags"></div>
+          </div>
         </div>
 
         <div class="trips-results">

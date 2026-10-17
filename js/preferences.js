@@ -25,7 +25,9 @@ const Preferences = {
   config: {
     converterSeen: true,
     widgets: DASHBOARD_WIDGETS.map(w => w.id),
-    favorites: ["itinerary", "packing", "bookings", "todo"]
+    favorites: ["itinerary", "packing", "bookings", "todo"],
+    // paesi visitati segnati a mano (codici ISO), anche senza un viaggio nell'app
+    visitedCountries: []
   },
   previousView: "view-trips",
 
@@ -52,6 +54,7 @@ const Preferences = {
       }
     }
     if (Array.isArray(cfg.favorites)) this.config.favorites = cfg.favorites;
+    if (Array.isArray(cfg.visitedCountries)) this.config.visitedCountries = cfg.visitedCountries;
   },
 
   async load() {
@@ -66,6 +69,7 @@ const Preferences = {
       this.applyConfig(data.dashboard_config);
       localStorage.setItem(this.LOCAL_KEY, JSON.stringify(this.config));
       if (window.Dashboard) Dashboard.refresh();
+      if (window.WorldMap) WorldMap.update();
     }
   },
 
@@ -81,6 +85,11 @@ const Preferences = {
     status.textContent = error
       ? "Salvato solo su questo dispositivo (esegui lo schema aggiornato su Supabase per sincronizzare)."
       : "Salvato ✓";
+  },
+
+  setVisitedCountries(codes) {
+    this.config.visitedCountries = [...new Set(codes)];
+    this.save();
   },
 
   isWidgetOn(id) { return this.config.widgets.includes(id); },
